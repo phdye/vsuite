@@ -14,9 +14,7 @@ all: $(PROGRAMS)
 	gcc $(CFLAGS) -o $@ $<
 
 test-v.exe:    test-v.c    ${IV}/v.h
-
 test-zv.exe:   test-zv.c   ${IV}/v.h  ${IV}/zv.h
-
 test-vf.exe:   test-vf.c   ${IV}/v.h  ${IV}/vf.h
 test-fv.exe:   test-fv.c   ${IV}/v.h  ${IV}/fv.h
 test-vd.exe:   test-vd.c   ${IV}/v.h  ${IV}/vd.h
