@@ -8,7 +8,7 @@
 #include <vsuite/v.h>
 
 /* Copy from Fixed VARCHAR to Dynamic C String (preallocated dest) */
-#define vd_copy(dstr, dcap, vsrc)                                             \
+#define dv_copy(dstr, dcap, vsrc)                                             \
     do {                                                                      \
         if ((vsrc).len < (dcap)) {                                            \
             memcpy(dstr, V_BUF(vsrc), (vsrc).len);                            \

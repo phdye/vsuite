@@ -22,16 +22,16 @@ static void test_copy(void) {
     VARCHAR(src, 6);
     char dst[6];
     strcpy(src.arr, "abc"); src.len = 3;
-    vd_copy(dst, sizeof(dst), src);
-    CHECK("vd_copy len", strcmp(dst, "abc") == 0);
+    dv_copy(dst, sizeof(dst), src);
+    CHECK("dv_copy len", strcmp(dst, "abc") == 0);
 }
 
 static void test_copy_overflow(void) {
     VARCHAR(src, 6);
     char dst[4];
     strcpy(src.arr, "abcd"); src.len = 4;
-    vd_copy(dst, sizeof(dst), src);
-    CHECK("vd_copy overflow", dst[0] == '\0');
+    dv_copy(dst, sizeof(dst), src);
+    CHECK("dv_copy overflow", dst[0] == '\0');
 }
 
 static void test_copy_zero_cap(void) {
@@ -39,8 +39,8 @@ static void test_copy_zero_cap(void) {
     char dst[1];
     strcpy(src.arr, "a"); src.len = 1;
     dst[0] = 'x';
-    vd_copy(dst, 0, src);
-    CHECK("vd_copy zero cap", dst[0] == 'x'); /* unchanged */
+    dv_copy(dst, 0, src);
+    CHECK("dv_copy zero cap", dst[0] == 'x'); /* unchanged */
 }
 
 static void test_dup(void) {
