@@ -6,9 +6,13 @@
 #include <stddef.h>
 
 /* Declaration macro for fixed VARCHAR */
-#define DECL_VARCHAR(name, size) struct { unsigned short len; char arr[size]; } name
+#define VARCHAR(name, size) struct { unsigned short len; char arr[size]; } name
 
-/* Internal helper to compute size from DECL_VARCHAR */
+// typeof(((struct { unsigned short len; char arr[1]; }){0}).arr)
+typedef VARCHAR(varchar_t, 1);
+#define varchar_buf_t typeof(((varchar_t *)0)->arr)
+
+/* Internal helper to compute size from VARCHAR */
 #define V_SIZE(v) (sizeof((v).arr))
 #define V_BUF(v)  ((v).arr)
 
