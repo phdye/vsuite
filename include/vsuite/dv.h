@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 /* Copy from Fixed VARCHAR to Dynamic C String (preallocated dest) */
 #define dv_copy(dstr, dcap, vsrc)                                             \
