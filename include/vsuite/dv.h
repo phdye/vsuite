@@ -5,7 +5,7 @@
 #include <stddef.h>
 
 /* Copy from Dynamic C String to Fixed VARCHAR */
-#define dv_copy(vdst, dsrc)                                                   \
+#define vd_copy(vdst, dsrc)                                                   \
     do {                                                                      \
         size_t __n = strlen(dsrc);                                            \
         if (__n < V_SIZE(vdst)) {                                             \

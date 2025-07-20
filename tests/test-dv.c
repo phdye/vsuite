@@ -20,22 +20,22 @@ static int verbose = 0;
 static void test_copy(void) {
     VARCHAR(dst, 6);
     const char *src = "abc";
-    dv_copy(dst, src);
-    CHECK("dv_copy len", dst.len == 3 && memcmp(dst.arr, "abc", 3) == 0);
+    vd_copy(dst, src);
+    CHECK("vd_copy len", dst.len == 3 && memcmp(dst.arr, "abc", 3) == 0);
 }
 
 static void test_copy_overflow(void) {
     VARCHAR(dst, 4);
     const char *src = "abcd";
-    dv_copy(dst, src);
-    CHECK("dv_copy overflow", dst.len == 0);
+    vd_copy(dst, src);
+    CHECK("vd_copy overflow", dst.len == 0);
 }
 
 static void test_copy_empty(void) {
     VARCHAR(dst, 4);
     const char *src = "";
-    dv_copy(dst, src);
-    CHECK("dv_copy empty", dst.len == 0);
+    vd_copy(dst, src);
+    CHECK("vd_copy empty", dst.len == 0);
 }
 
 int main(int argc, char **argv) {
