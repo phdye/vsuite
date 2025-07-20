@@ -100,7 +100,7 @@ static void test_zero_term_empty(void) {
 }
 
 static void test_trim_empty(void) {
-    DECL_VARCHAR(v,5);
+    VARCHAR(v,5);
     v.arr[0] = '\0';
     v.len = 0;
     zv_ltrim(v);
@@ -112,7 +112,7 @@ static void test_trim_empty(void) {
 }
 
 static void test_case_empty(void) {
-    DECL_VARCHAR(v,1);
+    VARCHAR(v,1);
     v.arr[0] = '\0';
     v.len = 0;
     zv_upper(v);
@@ -122,7 +122,7 @@ static void test_case_empty(void) {
 }
 
 static void test_copy_self(void) {
-    DECL_VARCHAR(v,5);
+    VARCHAR(v,5);
     strcpy(v.arr, "abc");
     v.len = 3;
     int n = zv_copy(v, v);
@@ -130,7 +130,7 @@ static void test_copy_self(void) {
 }
 
 static void test_zero_term_idempotent(void) {
-    DECL_VARCHAR(v,4);
+    VARCHAR(v,4);
     strcpy(v.arr, "abc");
     v.len = 3;
     zv_zero_term(v);

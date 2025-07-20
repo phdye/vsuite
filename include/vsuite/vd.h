@@ -22,7 +22,8 @@
 #define vd_dup(v) vd_dup_fcn(V_BUF(v), (v).len)
 
 /* Duplicate Fixed VARCHAR into newly allocated Dynamic C String */
-static inline char *vd_dup_fcn(const varchar_buf_t *src_buf, unsigned short src_len)
+static inline char *vd_dup_fcn(const char *src_buf, unsigned short src_len)
+{
     char *d = malloc(src_len + 1);
     if (!d) return NULL;
     memcpy(d, src_buf, src_len);
