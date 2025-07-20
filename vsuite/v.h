@@ -24,7 +24,7 @@
 /* Copy into another fixed VARCHAR; returns number of bytes copied or 0 on failure */
 #define v_copy(dest, src)                                                      \
     ((V_SIZE(dest) >= (src).len)                                               \
-        ? (memcpy(V_BUF(dest), V_BUF(src), (src).len),                         \
+        ? (memmove(V_BUF(dest), V_BUF(src), (src).len),                        \
            (dest).len = (src).len,                                             \
            (src).len)                                                          \
         : ((dest).len = 0, 0))

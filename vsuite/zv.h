@@ -33,7 +33,7 @@
 /* zv_copy: like v_copy but guarantees \0 termination */
 #define zv_copy(dest, src)                                                      \
     ((V_SIZE(dest) > (src).len)                                                 \
-        ? (memcpy(V_BUF(dest), V_BUF(src), (src).len),                          \
+        ? (memmove(V_BUF(dest), V_BUF(src), (src).len),                          \
            (dest).len = (src).len,                                              \
            V_BUF(dest)[(dest).len] = '\0',                                     \
            (src).len)                                                           \
