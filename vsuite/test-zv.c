@@ -53,6 +53,20 @@ static void test_copy(void) {
     CHECK("zv_copy fail", n == 0 && small.len == 2 && small.arr[2] == '\0');
 }
 
+static void test_copy_exact(void) {
+    DECL_VARCHAR(src,4); DECL_VARCHAR(dst,4);
+    strcpy(src.arr, "abc"); src.len = 3;
+    int n = zv_copy(dst, src);
+    CHECK("zv_copy exact", n == 3 && dst.len == 3 && strcmp(dst.arr, "abc") == 0);
+}
+
+static void test_copy_empty(void) {
+    DECL_VARCHAR(src,4); DECL_VARCHAR(dst,4);
+    src.arr[0] = '\0'; src.len = 0;
+    int n = zv_copy(dst, src);
+    CHECK("zv_copy empty", n == 0 && dst.len == 0 && dst.arr[0] == '\0');
+}
+
 static void test_trim(void) {
     DECL_VARCHAR(v1,10); DECL_VARCHAR(v2,10); DECL_VARCHAR(v3,10);
     strcpy(v1.arr, "  hi"); v1.len = 4; zv_ltrim(v1);
@@ -63,6 +77,32 @@ static void test_trim(void) {
 
     strcpy(v3.arr, "  hi  "); v3.len = 6; zv_trim(v3);
     CHECK("zv_trim", v3.len == 2 && strcmp(v3.arr, "hi") == 0);
+}
+
+static void test_trim_noop(void) {
+    DECL_VARCHAR(v,5);
+    strcpy(v.arr, "hi"); v.len = 2; zv_trim(v);
+    CHECK("zv_trim no-op", v.len == 2 && strcmp(v.arr, "hi") == 0);
+}
+
+static void test_trim_all_spaces(void) {
+    DECL_VARCHAR(v,5);
+    strcpy(v.arr, "   "); v.len = 3; zv_trim(v);
+    CHECK("zv_trim all", v.len == 0 && v.arr[0] == '\0');
+}
+
+static void test_zero_term_empty(void) {
+    DECL_VARCHAR(v,4); v.len = 0; v.arr[0] = 'x';
+    zv_zero_term(v);
+    CHECK("zv_zero_term empty", v.len == 0 && v.arr[0] == '\0');
+}
+
+static void test_large_copy(void) {
+    enum { N = 4096 };
+    DECL_VARCHAR(src, N); DECL_VARCHAR(dst, N);
+    memset(src.arr, 'a', N-1); src.arr[N-1] = '\0'; src.len = N-1;
+    int n = zv_copy(dst, src);
+    CHECK("zv_copy large", n == N-1 && dst.len == N-1 && memcmp(dst.arr, src.arr, N-1) == 0 && dst.arr[N-1] == '\0');
 }
 
 static void test_case(void) {
@@ -79,7 +119,13 @@ int main(int argc, char **argv) {
     test_valid();
     test_zero_term();
     test_copy();
+    test_copy_exact();
+    test_copy_empty();
     test_trim();
+    test_trim_noop();
+    test_trim_all_spaces();
+    test_zero_term_empty();
+    test_large_copy();
     test_case();
     if (failures == 0) {
         printf(verbose ? "\nAll tests passed.\n" : "\n");
