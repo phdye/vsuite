@@ -100,6 +100,11 @@ void test_find_first_nul(void) {
     CHECK("FIND_FIRST_NUL_BYTE none", FIND_FIRST_NUL_BYTE(buf,2)==NULL);
 }
 
+void test_find_first_nul_zero(void) {
+    char buf[1] = {'a'};
+    CHECK("FIND_FIRST_NUL_BYTE zero", FIND_FIRST_NUL_BYTE(buf,0)==NULL);
+}
+
 void test_check_macros(void) {
     DECL_VARCHAR(v,5);
     strcpy(v.arr,"hi"); v.len=2;
@@ -130,6 +135,27 @@ void test_copy(void) {
     CHECK("VARCHAR_COPY len", dst.len==3 && strcmp(dst.arr,"abc")==0);
 }
 
+void test_copy_large(void) {
+    enum { N = 4096 };
+    DECL_VARCHAR(src,N); DECL_VARCHAR(dst,N);
+    memset(src.arr,'x',N-1); src.arr[N-1]='\0'; src.len=N-1;
+    VARCHAR_COPY(dst, src);
+    CHECK("VARCHAR_COPY large", dst.len==N-1 && memcmp(dst.arr, src.arr, N-1)==0);
+}
+
+void test_copy_in_boundary(void) {
+    DECL_VARCHAR(v,4);
+    VARCHAR_COPY_IN(v,"abc");
+    CHECK("COPY_IN boundary", v.len==3 && strcmp(v.arr,"abc")==0);
+}
+
+void test_copy_out_boundary(void) {
+    DECL_VARCHAR(v,4); char buf[4];
+    strcpy(v.arr,"abc"); v.len=3;
+    VARCHAR_COPY_OUT(buf,v);
+    CHECK("COPY_OUT boundary", strcmp(buf,"abc")==0);
+}
+
 void test_copy_in_out(void) {
     DECL_VARCHAR(v,6); char buf[6];
     VARCHAR_COPY_IN(v,"hey");
@@ -143,10 +169,14 @@ int main(int argc,char **argv) {
 
     test_init();
     test_find_first_nul();
+    test_find_first_nul_zero();
     test_check_macros();
     test_zsetlen();
     test_setlenz();
     test_copy();
+    test_copy_large();
+    test_copy_in_boundary();
+    test_copy_out_boundary();
     test_copy_in_out();
 
     expect_abort(abort_check_len, "CHECK_LEN abort");
