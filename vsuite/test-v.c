@@ -46,6 +46,20 @@ static void test_copy(void) {
     CHECK("v_copy fail", n == 0 && small.len == 0);
 }
 
+static void test_copy_exact(void) {
+    DECL_VARCHAR(src, 3); DECL_VARCHAR(dst, 3);
+    strcpy(src.arr, "abc"); src.len = 3;
+    int n = v_copy(dst, src);
+    CHECK("v_copy exact", n == 3 && dst.len == 3 && memcmp(dst.arr, "abc", 3) == 0);
+}
+
+static void test_copy_empty(void) {
+    DECL_VARCHAR(src, 4); DECL_VARCHAR(dst, 4);
+    src.len = 0;
+    int n = v_copy(dst, src);
+    CHECK("v_copy empty", n == 0 && dst.len == 0);
+}
+
 static void test_trim(void) {
     DECL_VARCHAR(v1, 10); DECL_VARCHAR(v2, 10); DECL_VARCHAR(v3, 10);
     strcpy(v1.arr, "  hi"); v1.len = 4; v_ltrim(v1);
@@ -56,6 +70,32 @@ static void test_trim(void) {
 
     strcpy(v3.arr, "  hi  "); v3.len = 6; v_trim(v3);
     CHECK("v_trim", v3.len == 2 && memcmp(v3.arr, "hi", 2) == 0);
+}
+
+static void test_trim_noop(void) {
+    DECL_VARCHAR(v, 5);
+    strcpy(v.arr, "hi"); v.len = 2;
+    v_ltrim(v);
+    CHECK("v_ltrim no-op", v.len == 2 && memcmp(v.arr, "hi", 2) == 0);
+    v_rtrim(v);
+    CHECK("v_rtrim no-op", v.len == 2 && memcmp(v.arr, "hi", 2) == 0);
+    v_trim(v);
+    CHECK("v_trim no-op", v.len == 2 && memcmp(v.arr, "hi", 2) == 0);
+}
+
+static void test_trim_all_spaces(void) {
+    DECL_VARCHAR(v, 6);
+    strcpy(v.arr, "   "); v.len = 3;
+    v_trim(v);
+    CHECK("v_trim all", v.len == 0);
+}
+
+static void test_large_copy(void) {
+    enum { N = 4096 };
+    DECL_VARCHAR(src, N); DECL_VARCHAR(dst, N);
+    memset(src.arr, 'a', N); src.len = N;
+    int n = v_copy(dst, src);
+    CHECK("v_copy large", n == N && dst.len == N && memcmp(dst.arr, src.arr, N) == 0);
 }
 
 static void test_case(void) {
@@ -72,7 +112,12 @@ int main(int argc, char **argv) {
     test_init_clear();
     test_valid();
     test_copy();
+    test_copy_exact();
+    test_copy_empty();
     test_trim();
+    test_trim_noop();
+    test_trim_all_spaces();
+    test_large_copy();
     test_case();
     if (failures == 0) {
         printf(verbose ? "\nAll tests passed.\n" : "\n");
