@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "vsuite/v.h"
 
@@ -91,6 +92,34 @@ static void test_trim_all_spaces(void) {
     CHECK("v_trim all", v.len == 0);
 }
 
+static void test_trim_empty(void) {
+    DECL_VARCHAR(v, 5);
+    v.len = 0;
+    v_ltrim(v);
+    CHECK("v_ltrim empty", v.len == 0);
+    v_rtrim(v);
+    CHECK("v_rtrim empty", v.len == 0);
+    v_trim(v);
+    CHECK("v_trim empty", v.len == 0);
+}
+
+static void test_case_empty(void) {
+    DECL_VARCHAR(v, 3);
+    v.len = 0;
+    v_upper(v);
+    CHECK("v_upper empty", v.len == 0);
+    v_lower(v);
+    CHECK("v_lower empty", v.len == 0);
+}
+
+static void test_copy_self(void) {
+    DECL_VARCHAR(v, 5);
+    strcpy(v.arr, "abc");
+    v.len = 3;
+    int n = v_copy(v, v);
+    CHECK("v_copy self", n == 3 && v.len == 3 && memcmp(v.arr, "abc", 3) == 0);
+}
+
 static void test_large_copy(void) {
     enum { N = 4096 };
     VARCHAR(src, N); VARCHAR(dst, N);
@@ -118,7 +147,10 @@ int main(int argc, char **argv) {
     test_trim();
     test_trim_noop();
     test_trim_all_spaces();
+    test_trim_empty();
     test_large_copy();
+    test_case_empty();
+    test_copy_self();
     test_case();
     if (failures == 0) {
         printf(verbose ? "\nAll tests passed.\n" : "\n");

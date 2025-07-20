@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "vsuite/zv.h"
 
@@ -98,6 +99,44 @@ static void test_zero_term_empty(void) {
     CHECK("zv_zero_term empty", v.len == 0 && v.arr[0] == '\0');
 }
 
+static void test_trim_empty(void) {
+    DECL_VARCHAR(v,5);
+    v.arr[0] = '\0';
+    v.len = 0;
+    zv_ltrim(v);
+    CHECK("zv_ltrim empty", v.len == 0 && v.arr[0] == '\0');
+    zv_rtrim(v);
+    CHECK("zv_rtrim empty", v.len == 0 && v.arr[0] == '\0');
+    zv_trim(v);
+    CHECK("zv_trim empty", v.len == 0 && v.arr[0] == '\0');
+}
+
+static void test_case_empty(void) {
+    DECL_VARCHAR(v,1);
+    v.arr[0] = '\0';
+    v.len = 0;
+    zv_upper(v);
+    CHECK("zv_upper empty", v.len == 0 && v.arr[0] == '\0');
+    zv_lower(v);
+    CHECK("zv_lower empty", v.len == 0 && v.arr[0] == '\0');
+}
+
+static void test_copy_self(void) {
+    DECL_VARCHAR(v,5);
+    strcpy(v.arr, "abc");
+    v.len = 3;
+    int n = zv_copy(v, v);
+    CHECK("zv_copy self", n == 3 && v.len == 3 && strcmp(v.arr, "abc") == 0);
+}
+
+static void test_zero_term_idempotent(void) {
+    DECL_VARCHAR(v,4);
+    strcpy(v.arr, "abc");
+    v.len = 3;
+    zv_zero_term(v);
+    CHECK("zv_zero_term idempotent", v.len == 3 && strcmp(v.arr, "abc") == 0);
+}
+
 static void test_large_copy(void) {
     enum { N = 4096 };
     VARCHAR(src, N); VARCHAR(dst, N);
@@ -125,7 +164,11 @@ int main(int argc, char **argv) {
     test_trim();
     test_trim_noop();
     test_trim_all_spaces();
+    test_trim_empty();
     test_zero_term_empty();
+    test_zero_term_idempotent();
+    test_case_empty();
+    test_copy_self();
     test_large_copy();
     test_case();
     if (failures == 0) {
