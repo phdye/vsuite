@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#include "v.h"
+
+#include "vsuite/v.h"
 
 static int failures = 0;
 static int verbose = 0;
@@ -17,7 +18,7 @@ static int verbose = 0;
 } while (0)
 
 static void test_init_clear(void) {
-    DECL_VARCHAR(v, 5);
+    VARCHAR(v, 5);
     memset(v.arr, 'x', sizeof(v.arr));
     v.len = 3;
     v_init(v);
@@ -29,7 +30,7 @@ static void test_init_clear(void) {
 }
 
 static void test_valid(void) {
-    DECL_VARCHAR(v, 5);
+    VARCHAR(v, 5);
     v.len = 5;
     CHECK("v_valid ok", v_valid(v));
     v.len = 6;
@@ -37,7 +38,7 @@ static void test_valid(void) {
 }
 
 static void test_copy(void) {
-    DECL_VARCHAR(src, 6); DECL_VARCHAR(dst, 6); DECL_VARCHAR(small, 2);
+    VARCHAR(src, 6); VARCHAR(dst, 6); VARCHAR(small, 2);
     strcpy(src.arr, "abc"); src.len = 3;
     int n = v_copy(dst, src);
     CHECK("v_copy len", n == 3 && dst.len == 3 && memcmp(dst.arr, "abc", 3) == 0);
@@ -47,21 +48,21 @@ static void test_copy(void) {
 }
 
 static void test_copy_exact(void) {
-    DECL_VARCHAR(src, 3); DECL_VARCHAR(dst, 3);
+    VARCHAR(src, 3); VARCHAR(dst, 3);
     strcpy(src.arr, "abc"); src.len = 3;
     int n = v_copy(dst, src);
     CHECK("v_copy exact", n == 3 && dst.len == 3 && memcmp(dst.arr, "abc", 3) == 0);
 }
 
 static void test_copy_empty(void) {
-    DECL_VARCHAR(src, 4); DECL_VARCHAR(dst, 4);
+    VARCHAR(src, 4); VARCHAR(dst, 4);
     src.len = 0;
     int n = v_copy(dst, src);
     CHECK("v_copy empty", n == 0 && dst.len == 0);
 }
 
 static void test_trim(void) {
-    DECL_VARCHAR(v1, 10); DECL_VARCHAR(v2, 10); DECL_VARCHAR(v3, 10);
+    VARCHAR(v1, 10); VARCHAR(v2, 10); VARCHAR(v3, 10);
     strcpy(v1.arr, "  hi"); v1.len = 4; v_ltrim(v1);
     CHECK("v_ltrim", v1.len == 2 && memcmp(v1.arr, "hi", 2) == 0);
 
@@ -73,7 +74,7 @@ static void test_trim(void) {
 }
 
 static void test_trim_noop(void) {
-    DECL_VARCHAR(v, 5);
+    VARCHAR(v, 5);
     strcpy(v.arr, "hi"); v.len = 2;
     v_ltrim(v);
     CHECK("v_ltrim no-op", v.len == 2 && memcmp(v.arr, "hi", 2) == 0);
@@ -84,7 +85,7 @@ static void test_trim_noop(void) {
 }
 
 static void test_trim_all_spaces(void) {
-    DECL_VARCHAR(v, 6);
+    VARCHAR(v, 6);
     strcpy(v.arr, "   "); v.len = 3;
     v_trim(v);
     CHECK("v_trim all", v.len == 0);
@@ -92,14 +93,14 @@ static void test_trim_all_spaces(void) {
 
 static void test_large_copy(void) {
     enum { N = 4096 };
-    DECL_VARCHAR(src, N); DECL_VARCHAR(dst, N);
+    VARCHAR(src, N); VARCHAR(dst, N);
     memset(src.arr, 'a', N); src.len = N;
     int n = v_copy(dst, src);
     CHECK("v_copy large", n == N && dst.len == N && memcmp(dst.arr, src.arr, N) == 0);
 }
 
 static void test_case(void) {
-    DECL_VARCHAR(v, 4);
+    VARCHAR(v, 4);
     strcpy(v.arr, "aB3"); v.len = 3;
     v_upper(v);
     CHECK("v_upper", strcmp(v.arr, "AB3") == 0 && v.len == 3);
