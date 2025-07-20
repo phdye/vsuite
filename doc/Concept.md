@@ -6,6 +6,8 @@ For clarity, name the functions after the corresponding Standard C Library funct
 
 For fixed datatypes, the known sizes will be used to the best effect possible.
 
+With two data type indicators in a prefix, the meaning is '[<z-modifier>]<dst><src>_"
+
 <u>**Datatype Indicators**</u>
 
 - 'v' Fixed VARCHAR
