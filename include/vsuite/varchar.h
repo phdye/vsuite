@@ -5,66 +5,134 @@
 #include <ctype.h>
 #include <stddef.h>
 
-/* Declaration macro for fixed VARCHAR */
+/**
+ * VARCHAR() - Declare a fixed-size Oracle style VARCHAR structure.
+ * @name: name of the variable to declare.
+ * @size: number of characters the buffer can hold.
+ *
+ * This macro expands to a structure containing a ``len`` field and a
+ * character array of ``size`` bytes.  The string data is **not** automatically
+ * zero terminated; ``len`` tracks the number of valid bytes in ``arr``.
+ *
+ * Example::
+ *
+ *     VARCHAR(buf, 16);
+ *     strcpy(buf.arr, "hi");
+ *     buf.len = 2;
+ */
 #define VARCHAR(name, size) struct { unsigned short len; char arr[size]; } name
 
-// typeof(((struct { unsigned short len; char arr[1]; }){0}).arr)
+/*
+ * ``varchar_t`` is a helper type used internally to compute array types.
+ * It declares a one character VARCHAR which mirrors the layout of any
+ * VARCHAR instance.  ``varchar_buf_t`` resolves to the type of the character
+ * array within a VARCHAR.
+ */
 typedef VARCHAR(varchar_t, 1);
+/* Resolve the buffer type of a VARCHAR instance */
 #define varchar_buf_t typeof(((varchar_t *)0)->arr)
 
-/* Internal helper to compute size from VARCHAR */
+/*
+ * V_SIZE() - Return the total capacity of a VARCHAR buffer.
+ * @v: VARCHAR variable.
+ */
 #define V_SIZE(v) (sizeof((v).arr))
+
+/*
+ * V_BUF() - Yield the underlying character array of a VARCHAR.
+ * @v: VARCHAR variable.
+ */
 #define V_BUF(v)  ((v).arr)
 
-/* Check if Fixed VARCHAR has at least capacity for a string of size N */
+/*
+ * v_has_capacity() - Test if @v can hold @N bytes.
+ * @v:  VARCHAR variable being queried.
+ * @N:  Number of characters to check for.
+ *
+ * Returns true when the destination buffer has at least @N bytes of space.
+ */
 #define v_has_capacity(v, N) \
     ((N) <= V_SIZE(v))
 
-/* Initialize a fixed VARCHAR to empty string */
+/*
+ * v_init() - Reset a VARCHAR to an empty state.
+ * @v: VARCHAR variable to modify.
+ */
 #define v_init(v) ((v).len = 0)
 
-/* Check validity of a VARCHAR: len <= size */
+/*
+ * v_valid() - Validate that @v.len does not exceed the buffer size.
+ */
 #define v_valid(v) ((v).len <= V_SIZE(v))
 
-/* Clear the content of the VARCHAR (reset len only) */
+/*
+ * v_clear() - Alias for v_init(); provided for readability.
+ */
 #define v_clear(v) ((v).len = 0)
 
-/* Copy into another fixed VARCHAR; returns number of bytes copied or 0 on failure */
+/*
+ * v_copy() - Copy one VARCHAR into another.
+ * @dest: Destination VARCHAR that receives the data.
+ * @src:  Source VARCHAR to copy from.
+ *
+ * The copy only succeeds when @dest has enough capacity for ``src.len`` bytes.
+ * On success the bytes are copied with ``memmove`` and the destination length
+ * is updated.  The number of bytes copied is returned.  If the destination is
+ * too small, ``dest.len`` is cleared to zero and ``0`` is returned.
+ */
 #define v_copy(dest, src)                                                      \
     ((V_SIZE(dest) >= (src).len)                                               \
-        ? (memmove(V_BUF(dest), V_BUF(src), (src).len),                        \
+        ? ( /* sufficient space */                                            \
+           memmove(V_BUF(dest), V_BUF(src), (src).len),                        \
            (dest).len = (src).len,                                             \
            (src).len)                                                          \
-        : ((dest).len = 0, 0))
+        : ( /* overflow, clear dest */                                         \
+           (dest).len = 0,                                                     \
+           0))
 
-/* Trim left whitespace */
+/*
+ * v_ltrim() - Remove leading ASCII whitespace from a VARCHAR.
+ *
+ * Characters are shifted left in-place using ``memmove`` when leading
+ * whitespace is detected.  ``len`` is adjusted to reflect the new size.
+ */
 #define v_ltrim(v) do {                                            \
     size_t i = 0;                                                  \
-    while (i < (v).len && isspace((unsigned char)V_BUF(v)[i])) i++; \
+    while (i < (v).len && isspace((unsigned char)V_BUF(v)[i]))      \
+        i++;                                                       \
     if (i > 0) {                                                   \
         memmove(V_BUF(v), V_BUF(v) + i, (v).len - i);              \
         (v).len -= i;                                              \
     }                                                             \
 } while (0)
 
-/* Trim right whitespace */
+/*
+ * v_rtrim() - Strip trailing ASCII whitespace from a VARCHAR.
+ */
 #define v_rtrim(v) do {                                            \
-    while ((v).len > 0 && isspace((unsigned char)V_BUF(v)[(v).len - 1])) { \
+    while ((v).len > 0 &&                                         \
+           isspace((unsigned char)V_BUF(v)[(v).len - 1])) {        \
         (v).len--;                                                 \
     }                                                             \
 } while (0)
 
-/* Trim both sides */
+/*
+ * v_trim() - Convenience wrapper to run both v_rtrim() and v_ltrim().
+ */
 #define v_trim(v)  \
     do { v_rtrim(v); v_ltrim(v); } while (0)
 
-/* Convert to uppercase */
+/*
+ * v_upper() - In-place ASCII uppercase conversion.
+ */
 #define v_upper(v) do {                                  \
     for (size_t i = 0; i < (v).len; i++)                 \
         V_BUF(v)[i] = toupper((unsigned char)V_BUF(v)[i]); \
 } while (0)
 
-/* Convert to lowercase */
+/*
+ * v_lower() - In-place ASCII lowercase conversion.
+ */
 #define v_lower(v) do {                                  \
     for (size_t i = 0; i < (v).len; i++)                 \
         V_BUF(v)[i] = tolower((unsigned char)V_BUF(v)[i]); \

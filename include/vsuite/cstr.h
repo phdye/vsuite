@@ -7,7 +7,15 @@
 
 #include <vsuite/varchar.h>
 
-/* Copy from Dynamic C String to Fixed VARCHAR */
+/*
+ * vd_copy() - Copy from a dynamic C string into a fixed VARCHAR.
+ * @vdst: Destination VARCHAR.
+ * @dsrc: Source C string.
+ *
+ * The copy only succeeds when the source fits entirely within the destination
+ * buffer.  Otherwise ``vdst.len`` is cleared to zero so callers can detect the
+ * overflow.
+ */
 #define vd_copy(vdst, dsrc)                                                   \
     do {                                                                      \
         size_t __n = strlen(dsrc);                                            \
@@ -19,14 +27,22 @@
         }                                                                     \
     } while (0)
 
-/* Copy from Dynamic C String to Fixed VARCHAR, zero-byte terminated */
+/*
+ * zvd_copy() - Copy a dynamic C string and always NUL terminate the result.
+ */
 #define zvd_copy(vdst, dsrc)                                                  \
     do {                                                                      \
         vd_copy(vdst, dsrc);                                                  \
         zv_zero_term(vdst);                                                   \
     } while (0)
 
-/* Copy from Fixed VARCHAR to Dynamic C String (preallocated dest) */
+/*
+ * dv_copy() - Copy a VARCHAR into a preallocated dynamic C string buffer.
+ *
+ * ``dstr`` must have capacity ``dcap``. When the source fits the data is copied
+ * and a terminator appended.  Otherwise the destination is cleared to an empty
+ * string (if ``dcap`` is non-zero).
+ */
 #define dv_copy(dstr, dcap, vsrc)                                             \
     do {                                                                      \
         if ((vsrc).len < (dcap)) {                                            \
@@ -37,16 +53,24 @@
         }                                                                     \
     } while (0)
 
+/* Convenience wrapper to duplicate a VARCHAR into a newly allocated C string */
 #define dv_dup(v) dv_dup_fcn(V_BUF(v), (v).len)
 
-/* Duplicate Fixed VARCHAR into newly allocated Dynamic C String */
+/*
+ * dv_dup_fcn() - Allocate and duplicate a VARCHAR into a dynamic C string.
+ * @src_buf: Pointer to source character data.
+ * @src_len: Length of the source data.
+ *
+ * Returns: a pointer to a newly allocated NUL terminated C string or ``NULL``
+ * on allocation failure.
+ */
 static inline char *dv_dup_fcn(const char *src_buf, unsigned short src_len)
 {
-    char *d = malloc(src_len + 1);
+    char *d = malloc(src_len + 1); /* allocate space for data plus terminator */
     if (!d)
         return NULL;
-    memcpy(d, src_buf, src_len);
-    d[src_len] = '\0';
+    memcpy(d, src_buf, src_len);   /* copy bytes */
+    d[src_len] = '\0';            /* append NUL terminator */
     return d;
 }
 
