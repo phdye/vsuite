@@ -10,13 +10,15 @@ This guide summarizes the design of VSuite and explains the naming conventions f
 - [Error Handling and Truncation](#error-handling-and-truncation)
 - [Macro Reference](#macro-reference)
   - [Declaration](#declaration)
-  - [Core utilities (`v.h`)](#core-utilities-vh)
+  - [VARCHAR utilities (`v.h`)](#core-utilities-vh) 
+  - [Zero-terminated variant (`zv.h`)](#zero-terminated-variant-zvh)
   - [Interop helpers](#interop-helpers)
-    - [`dv.h`](#dvh)
-    - [`fv.h`](#fvh)
-    - [`vf.h`](#vfh)
-    - [`vd.h`](#vdh)
-  - [Zero-terminated variants (`zv.h`)](#zero-terminated-variants-zvh)
+    - VARCHAR <-> Fixed:
+      - [`vf.h`](#vfh)
+      - [`fv.h`](#fvh) 
+    - VARCHAR <-> Dynamic:
+      - [`vd.h`](#vdh)
+      - [`dv.h`](#dvh)
 - [Further Reading](#further-reading)
 
 ## Design Overview
@@ -202,7 +204,7 @@ const char *dyn = getenv("HOME");
 vd_copy(tmp, dyn);
 ```
 
-### Zero-terminated variants (`zv.h`)
+### Zero-terminated variant (`zv.h`)
 
 These macros mirror the `v_` operations but guarantee that the destination is
 NUL terminated.
