@@ -45,5 +45,7 @@ int main(void) {
 }
 ```
 
-For additional macros and guidelines see the Developer Guide in `doc` and the
-`CONTRIBUTING` page.
+For more details see the [Developer Guide](doc/Developer-Guide.md), which links
+to the underlying [Concept](doc/Concept.md) notes and the
+[Implementation Roadmap](doc/Implementation-Roadmap.md).  Additional guidance is
+available in the `CONTRIBUTING` page.
