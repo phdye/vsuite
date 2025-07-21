@@ -114,6 +114,7 @@ VARCHAR(buf, 32);   /* buf.len and buf.arr available */
 
 - `V_SIZE(v)` – capacity of `v` in bytes.
 - `V_BUF(v)` – pointer to the underlying array.
+- `v_has_capacity(v, n)` – check that `v` can hold `n` bytes.
 - `v_init(v)` – set length to zero.
 
 ```c
@@ -209,6 +210,8 @@ NUL terminated.
 - `zv_copy(dest, src)` – copy while always leaving space for `\0`.
 - `zv_ltrim(v)`, `zv_rtrim(v)`, `zv_trim(v)` – trimming operations.
 - `zv_upper(v)`, `zv_lower(v)` – case conversion.
+- `ZV_CAPACITY(v)` – usable size excluding the terminator.
+- `zv_has_capacity(v, n)` – test for room for `n` characters.
 
 ```c
 VARCHAR(z, 4);
