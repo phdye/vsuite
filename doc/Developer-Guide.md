@@ -2,6 +2,23 @@
 
 This guide summarizes the design of VSuite and explains the naming conventions for the macros.  It also shows basic usage patterns and how overflow conditions are handled.
 
+## Table of Contents
+
+- [Design Overview](#design-overview)
+- [Prefix Conventions](#prefix-conventions)
+- [Usage Examples](#usage-examples)
+- [Error Handling and Truncation](#error-handling-and-truncation)
+- [Macro Reference](#macro-reference)
+  - [Declaration](#declaration)
+  - [Core utilities (`v.h`)](#core-utilities-vh)
+  - [Interop helpers](#interop-helpers)
+    - [`dv.h`](#dvh)
+    - [`fv.h`](#fvh)
+    - [`vf.h`](#vfh)
+    - [`vd.h`](#vdh)
+  - [Zero-terminated variants (`zv.h`)](#zero-terminated-variants-zvh)
+- [Further Reading](#further-reading)
+
 ## Design Overview
 
 VSuite provides small macros to manipulate strings that mimic Oracle's host `VARCHAR` structures.  A fixed string is declared as:
