@@ -107,6 +107,19 @@ static void test_large_copy(void) {
     CHECK("v_copy large", n == N && dst.len == N && memcmp(dst.arr, src.arr, N) == 0);
 }
 
+/*
+ * Exercise v_copy with an extremely large VARCHAR to stress internal loops
+ * and boundary conditions at around 32k characters.
+ */
+static void test_extreme_copy(void) {
+    enum { N = 32768 };
+    VARCHAR(src, N); VARCHAR(dst, N);
+    memset(src.arr, 'x', N);
+    src.len = N;
+    int n = v_copy(dst, src);
+    CHECK("v_copy extreme", n == N && dst.len == N && memcmp(dst.arr, src.arr, N) == 0);
+}
+
 /* Verify left, right and full trimming of whitespace. */
 static void test_trim(void) {
     VARCHAR(v1, 10); VARCHAR(v2, 10); VARCHAR(v3, 10);
@@ -206,24 +219,48 @@ static void test_case(void) {
     CHECK("v_lower", strcmp(v.arr, "ab3") == 0 && v.len == 3);
 }
 
+/*
+ * Toggle the case of a massive buffer to ensure v_upper and v_lower correctly
+ * handle long strings.
+ */
+static void test_mass_case(void) {
+    enum { N = 32768 };
+    VARCHAR(v, N);
+    memset(v.arr, 'a', N);
+    v.len = N;
+    v_upper(v);
+    for (size_t i = 0; i < N; i++)
+        if (v.arr[i] != 'A') { CHECK("v_mass_upper", 0); break; }
+    v_lower(v);
+    for (size_t i = 0; i < N; i++)
+        if (v.arr[i] != 'a') { CHECK("v_mass_lower", 0); break; }
+}
+
 int main(int argc, char **argv) {
     for (int i=1;i<argc;i++) if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose")) verbose = 1;
+
     test_init_clear();
     test_valid();
+
     test_copy();
     test_copy_exact();
     test_copy_empty();
     test_large_copy();
     test_copy_dest_size_one();
     test_copy_self();
+    test_extreme_copy();
+
     test_trim();
     test_trim_noop();
     test_trim_all_spaces();
     test_trim_empty();
     test_trim_tabs_newlines();
+
     test_upper_lower_nonalpha();
     test_case_empty();
     test_case();
+    test_mass_case();
+
     if (failures == 0) {
         printf(verbose ? "\nAll tests passed.\n" : "\n");
     } else {

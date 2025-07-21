@@ -46,6 +46,22 @@ static void test_vf_copy_empty(void) {
 }
 
 /*
+ * Verify vf_copy can handle copying a large constant string into a VARCHAR
+ * without truncation or corruption.
+ */
+static void test_vf_copy_large(void) {
+    enum { N = 8192 };
+    static char src[N + 1];
+    for (size_t i = 0; i < N; i++) src[i] = 'a';
+    src[N] = '\0';
+    VARCHAR(dst, N + 1);
+    vf_copy(dst, src);
+    int ok = (dst.len == N);
+    ok = ok && memcmp(dst.arr, src, N) == 0;
+    CHECK("vf_copy large", ok);
+}
+
+/*
  * Copying from a VARCHAR into a fixed C array should produce an identical
  * NUL terminated string when the buffer is large enough.
  */
@@ -80,6 +96,22 @@ static void test_fv_copy_empty(void) {
     CHECK("fv_copy empty", dst[0] == '\0');
 }
 
+/*
+ * Ensure fv_copy correctly copies a large VARCHAR into a fixed C buffer and
+ * preserves the NUL terminator.
+ */
+static void test_fv_copy_large(void) {
+    enum { N = 8192 };
+    char dst[N + 1];
+    VARCHAR(src, N + 1);
+    memset(src.arr, 'b', N);
+    src.arr[N] = '\0';
+    src.len = N;
+    fv_copy(dst, src);
+    int ok = (strcmp(dst, src.arr) == 0);
+    CHECK("fv_copy large", ok);
+}
+
 int main(int argc, char **argv) {
     for (int i=1;i<argc;i++)
         verbose |= (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose"));
@@ -87,10 +119,12 @@ int main(int argc, char **argv) {
     test_vf_copy();
     test_vf_copy_overflow();
     test_vf_copy_empty();
+    test_vf_copy_large();
 
     test_fv_copy();
     test_fv_copy_overflow();
     test_fv_copy_empty();
+    test_fv_copy_large();
 
     if (failures == 0)
         printf(verbose ? "\nAll tests passed.\n" : "\n");

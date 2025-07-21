@@ -52,6 +52,24 @@ static void test_valid(void) {
     CHECK("zv_valid term", !zv_valid(v));     /* no terminator */
 }
 
+/* Validate that zv_valid succeeds when len is zero but the array is
+ * NUL-terminated as expected.
+ */
+static void test_valid_zero_len_good_term(void) {
+    VARCHAR(v, 2);
+    v.len = 0;
+    v.arr[0] = '\0';
+    CHECK("zv_valid zero good", zv_valid(v));
+}
+
+/* Even length zero strings must have a terminator byte. */
+static void test_valid_zero_len_bad_term(void) {
+    VARCHAR(v, 2);
+    v.arr[0] = 'x';
+    v.len = 0;
+    CHECK("zv_valid zero bad", !zv_valid(v));
+}
+
 /*
  * zv_zero_term() should ensure the string is terminated.  If the length is
  * within bounds it simply writes a terminator, otherwise it truncates the
@@ -83,12 +101,15 @@ static void test_zero_term_empty(void) {
     CHECK("zv_zero_term empty", v.len == 0 && v.arr[0] == '\0');
 }
 
-/* Even length zero strings must have a terminator byte. */
-static void test_valid_zero_len_bad_term(void) {
-    VARCHAR(v, 2);
-    v.arr[0] = 'x';
-    v.len = 0;
-    CHECK("zv_valid zero bad", !zv_valid(v));
+/* Ensure zv_zero_term works on a size-one buffer by resetting the single
+ * character to the terminator and clearing the length.
+ */
+static void test_zero_term_size_one(void) {
+    VARCHAR(v,1);
+    v.arr[0] = 'a';
+    v.len = 1;
+    zv_zero_term(v);
+    CHECK("zv_zero_term size1", v.len == 0 && v.arr[0] == '\0');
 }
 
 /*
@@ -150,6 +171,20 @@ static void test_copy_dest_size_one(void) {
     src.len=1;
     int n = zv_copy(dst, src);
     CHECK("zv_copy tiny", n == 0 && dst.len == 0);
+}
+
+/*
+ * Similar to test_extreme_copy in varchar tests but ensures zv_copy properly
+ * copies very large, NUL-terminated strings.
+ */
+static void test_extreme_copy(void) {
+    enum { N = 32768 };
+    VARCHAR(src, N); VARCHAR(dst, N);
+    memset(src.arr, 'x', N-1);
+    src.arr[N-1] = '\0';
+    src.len = N-1;
+    int n = zv_copy(dst, src);
+    CHECK("zv_copy extreme", n == N-1 && dst.len == N-1 && memcmp(dst.arr, src.arr, N-1) == 0 && dst.arr[N-1] == '\0');
 }
 
 /* Verify trimming functions while maintaining termination. */
@@ -248,29 +283,58 @@ static void test_upper_lower_nonalpha(void) {
     CHECK("zv_lower nonalpha", strcmp(v.arr,"a1!b") == 0);
 }
 
+/*
+ * Mass upper/lower-case conversion on a zvarchar to validate handling of large
+ * buffers and preservation of the trailing terminator.
+ */
+static void test_mass_case(void) {
+    enum { N = 32768 };
+    VARCHAR(v, N);
+    memset(v.arr, 'a', N-1);
+    v.arr[N-1] = '\0';
+    v.len = N-1;
+    zv_upper(v);
+    for (size_t i = 0; i < N-1; i++)
+        if (v.arr[i] != 'A') { CHECK("zv_mass_upper", 0); break; }
+    zv_lower(v);
+    for (size_t i = 0; i < N-1; i++)
+        if (v.arr[i] != 'a') { CHECK("zv_mass_lower", 0); break; }
+    CHECK("zv_mass_case term", v.arr[N-1] == '\0');
+}
 
 int main(int argc, char **argv) {
     for (int i=1;i<argc;i++) if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose")) verbose = 1;
+
     test_init_clear();
+
     test_valid();
+    test_valid_zero_len_good_term();
+    test_valid_zero_len_bad_term();
+
     test_zero_term();
     test_zero_term_idempotent();
     test_zero_term_empty();
-    test_valid_zero_len_bad_term();
+    test_zero_term_size_one();
+
     test_copy();
     test_copy_exact();
     test_copy_empty();
     test_copy_self();
     test_large_copy();
-    test_copy_dest_size_one();
+    test_copy_dest_size_one();    
+    test_extreme_copy();
+
     test_trim();
     test_trim_noop();
     test_trim_all_spaces();
     test_trim_empty();
     test_trim_tabs_newlines();
+
     test_case();
     test_case_empty();
     test_upper_lower_nonalpha();
+    test_mass_case();
+
     if (failures == 0) {
         printf(verbose ? "\nAll tests passed.\n" : "\n");
     } else {
