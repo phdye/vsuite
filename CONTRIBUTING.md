@@ -56,7 +56,8 @@ the C standard library. The design notes in `doc/Concept.md` list the prefixes:
 - 'x_'  -- Pointers to VARCHAR
 - 'vf_' -- Fixed VARCHAR  ← fixed C string
 - 'fv_' -- Fixed C string ← fixed VARCHAR
-- 'vd_' -- Fixed VARCHAR  ← dynamic C string
+- 'vp_' -- Fixed VARCHAR  ← C string pointer
+- 'pv_' -- C string pointer ← fixed VARCHAR
 - 'dv_' -- Dynamic string ← fixed VARCHAR
 ```
 
@@ -67,7 +68,7 @@ example, a fixed/dynamic comparison routine might be called `dv_strcmp`.
 
 Simple helper functions that need to appear in headers should be declared
 `static inline`. For instance, `dv_dup_fcn` is defined this way in
-`include/vsuite/cstr.h`:
+`include/vsuite/pstr.h`:
 
 ```c
 static inline char *dv_dup_fcn(const char *src_buf, unsigned short src_len)

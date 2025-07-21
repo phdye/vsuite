@@ -7,6 +7,6 @@
 
 #include <vsuite/fixed.h>
 
-#include <vsuite/cstr.h>
+#include <vsuite/pstr.h>
 
 #endif /* VSUITE_H */
