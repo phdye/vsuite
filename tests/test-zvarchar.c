@@ -71,6 +71,22 @@ static void test_valid_zero_len_bad_term(void) {
 }
 
 /*
+ * zv_has_capacity() reports whether a buffer can hold N characters in
+ * addition to the terminating NUL byte. This verifies normal and edge cases
+ * including size-one buffers that offer zero capacity.
+ */
+static void test_has_capacity(void) {
+    VARCHAR(v, 5);                 /* 4 bytes usable */
+    CHECK("zv_has_capacity ok", zv_has_capacity(v, 4));
+    CHECK("zv_has_capacity max", !zv_has_capacity(v, 5));
+    CHECK("zv_has_capacity zero", zv_has_capacity(v, 0));
+
+    VARCHAR(tiny, 1);              /* no space for data */
+    CHECK("zv_has_capacity none", !zv_has_capacity(tiny, 1) &&
+                                  zv_has_capacity(tiny, 0));
+}
+
+/*
  * zv_zero_term() should ensure the string is terminated.  If the length is
  * within bounds it simply writes a terminator, otherwise it truncates the
  * string.
@@ -310,6 +326,7 @@ int main(int argc, char **argv) {
     test_valid();
     test_valid_zero_len_good_term();
     test_valid_zero_len_bad_term();
+    test_has_capacity();
 
     test_zero_term();
     test_zero_term_idempotent();

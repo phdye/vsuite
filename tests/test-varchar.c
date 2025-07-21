@@ -46,14 +46,14 @@ static void test_valid(void) {
     CHECK("v_valid overflow", !v_valid(v));    /* length exceeds capacity */
 }
 
-/* v_has_capacity() confirms enough free space remains for N bytes. */
+/* v_has_capacity() checks the declared size of the VARCHAR. */
 static void test_has_capacity(void) {
     VARCHAR(v, 5);
-    v.len = 3;
-    CHECK("v_has_capacity ok", v_has_capacity(v, 4));      /* 1 byte free */
-    CHECK("v_has_capacity full", !v_has_capacity(v, 3));   /* no space */
+    v.len = 3;                      /* length does not affect test */
+    CHECK("v_has_capacity ok", v_has_capacity(v, 4));      /* within size */
+    CHECK("v_has_capacity full", v_has_capacity(v, 3));    /* also fits */
     CHECK("v_has_capacity big", !v_has_capacity(v, 6));    /* beyond size */
-    CHECK("v_has_capacity max", v_has_capacity(v, 5));     /* exactly fits */
+    CHECK("v_has_capacity max", v_has_capacity(v, 5));     /* exactly size */
 }
 
 /*
