@@ -183,6 +183,14 @@ const char *dyn = getenv("HOME");
 vd_copy(tmp, dyn);
 ```
 
+ - `zvd_copy(vdst, dsrc)` – like `vd_copy` but always NUL terminates the
+   destination even when the source overflows.
+
+```c
+const char *src = "abc";
+zvd_copy(tmp, src);
+```
+
 #### `fixed.h`
 
 - `fv_copy(dst, src)` – copy a fixed `VARCHAR` into a fixed array.
@@ -197,6 +205,14 @@ fv_copy(fixed, tmp);
 ```c
 VARCHAR(v, 8);
 vf_copy(v, "hello");
+```
+
+`zvf_copy(vdst, csrc)` – zero-terminating form of `vf_copy` that
+ensures the destination always contains a NUL terminator.
+
+```c
+VARCHAR(v2, 4);
+zvf_copy(v2, "ab");
 ```
 
 ### Zero-terminated variant (`zvarchar.h`)

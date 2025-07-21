@@ -222,6 +222,22 @@ static void test_dv_dup_large(void) {
     free(d);
 }
 
+/* Directly exercise dv_dup_fcn with a small string. */
+static void test_dv_dup_fcn_basic(void) {
+    const char src[] = "xyz";
+    char *d = dv_dup_fcn(src, 3);
+    CHECK("dv_dup_fcn basic", d && strcmp(d, "xyz") == 0);
+    free(d);
+}
+
+/* dv_dup_fcn should handle empty strings. */
+static void test_dv_dup_fcn_empty(void) {
+    const char src[] = "";
+    char *d = dv_dup_fcn(src, 0);
+    CHECK("dv_dup_fcn empty", d && *d == '\0');
+    free(d);
+}
+
 int main(int argc, char **argv) {
     for (int i=1;i<argc;i++)
         verbose |= (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose"));
@@ -246,6 +262,8 @@ int main(int argc, char **argv) {
     test_dv_dup_basic();
     test_dv_dup_empty();
     test_dv_dup_large();
+    test_dv_dup_fcn_basic();
+    test_dv_dup_fcn_empty();
 
     if (failures == 0)
         printf(verbose ? "\nAll tests passed.\n" : "\n");
