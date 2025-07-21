@@ -60,6 +60,13 @@ static void test_zero_term_empty(void) {
     CHECK("zv_zero_term empty", v.len == 0 && v.arr[0] == '\0');
 }
 
+static void test_valid_zero_len_bad_term(void) {
+    VARCHAR(v, 2);
+    v.arr[0] = 'x';
+    v.len = 0;
+    CHECK("zv_valid zero bad", !zv_valid(v));
+}
+
 static void test_copy(void) {
     VARCHAR(src,6); VARCHAR(dst,6); VARCHAR(small,3);
     strcpy(src.arr, "abc"); src.len = 3;
@@ -99,6 +106,13 @@ static void test_large_copy(void) {
     CHECK("zv_copy large", n == N-1 && dst.len == N-1 && memcmp(dst.arr, src.arr, N-1) == 0 && dst.arr[N-1] == '\0');
 }
 
+static void test_copy_dest_size_one(void) {
+    VARCHAR(src,2); VARCHAR(dst,1);
+    strcpy(src.arr,"a"); src.len=1;
+    int n = zv_copy(dst, src);
+    CHECK("zv_copy tiny", n == 0 && dst.len == 0);
+}
+
 static void test_trim(void) {
     VARCHAR(v1,10); VARCHAR(v2,10); VARCHAR(v3,10);
     strcpy(v1.arr, "  hi"); v1.len = 4; zv_ltrim(v1);
@@ -135,6 +149,14 @@ static void test_trim_empty(void) {
     CHECK("zv_trim empty", v.len == 0 && v.arr[0] == '\0');
 }
 
+static void test_trim_tabs_newlines(void) {
+    VARCHAR(v1, 10); VARCHAR(v2, 10);
+    strcpy(v1.arr, "\tfoo\n"); v1.len = 5; zv_ltrim(v1);
+    CHECK("zv_ltrim misc", v1.len == 4 && strcmp(v1.arr, "foo\n") == 0);
+    strcpy(v2.arr, "foo\t\n"); v2.len = 5; zv_rtrim(v2);
+    CHECK("zv_rtrim misc", v2.len == 3 && strcmp(v2.arr, "foo") == 0);
+}
+
 static void test_case(void) {
     VARCHAR(v,4);
     strcpy(v.arr, "aB3"); v.len = 3; zv_upper(v);
@@ -153,6 +175,16 @@ static void test_case_empty(void) {
     CHECK("zv_lower empty", v.len == 0 && v.arr[0] == '\0');
 }
 
+static void test_upper_lower_nonalpha(void) {
+    VARCHAR(v,5);
+    strcpy(v.arr, "a1!B"); v.len=4;
+    zv_upper(v);
+    CHECK("zv_upper nonalpha", strcmp(v.arr,"A1!B") == 0);
+    zv_lower(v);
+    CHECK("zv_lower nonalpha", strcmp(v.arr,"a1!b") == 0);
+}
+
+
 int main(int argc, char **argv) {
     for (int i=1;i<argc;i++) if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose")) verbose = 1;
     test_init_clear();
@@ -160,17 +192,21 @@ int main(int argc, char **argv) {
     test_zero_term();
     test_zero_term_idempotent();
     test_zero_term_empty();
+    test_valid_zero_len_bad_term();
     test_copy();
     test_copy_exact();
     test_copy_empty();
     test_copy_self();
     test_large_copy();
+    test_copy_dest_size_one();
     test_trim();
     test_trim_noop();
     test_trim_all_spaces();
     test_trim_empty();
+    test_trim_tabs_newlines();
     test_case();
     test_case_empty();
+    test_upper_lower_nonalpha();
     if (failures == 0) {
         printf(verbose ? "\nAll tests passed.\n" : "\n");
     } else {
