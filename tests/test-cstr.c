@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "vsuite/varchar.h"
+#include "vsuite/zvarchar.h" /* for zvd_copy helpers */
 #include "vsuite/cstr.h"
 
 static int failures = 0;
@@ -47,6 +48,42 @@ static void test_vd_copy_empty(void) {
     const char *src = "";
     vd_copy(dst, src);
     CHECK("vd_copy  empty", dst.len == 0);
+}
+
+/* zvd_copy behaves like vd_copy but always NUL terminates the target. */
+static void test_zvd_copy(void) {
+    VARCHAR(dst, 6);
+    const char *src = "abc";
+    zvd_copy(dst, src);
+    CHECK("zvd_copy len", dst.len == 3 && strcmp(dst.arr, "abc") == 0);
+}
+
+/* Overflow when using zvd_copy clears length and leaves a terminator. */
+static void test_zvd_copy_overflow(void) {
+    VARCHAR(dst, 4);
+    const char *src = "abcd";
+    zvd_copy(dst, src);
+    CHECK("zvd_copy overflow", dst.len == 0 && dst.arr[0] == '\0');
+}
+
+/* Empty string through zvd_copy should yield an empty, terminated VARCHAR. */
+static void test_zvd_copy_empty(void) {
+    VARCHAR(dst, 2);
+    const char *src = "";
+    zvd_copy(dst, src);
+    CHECK("zvd_copy empty", dst.len == 0 && dst.arr[0] == '\0');
+}
+
+/* Large buffer stress test for zvd_copy. */
+static void test_zvd_copy_large(void) {
+    enum { N = 8192 };
+    char src[N + 1];
+    memset(src, 'd', N);
+    src[N] = '\0';
+    VARCHAR(dst, N + 1);
+    zvd_copy(dst, src);
+    int ok = (dst.len == N && dst.arr[N] == '\0' && memcmp(dst.arr, src, N) == 0);
+    CHECK("zvd_copy large", ok);
 }
 
 /*
@@ -114,6 +151,16 @@ static void test_dv_copy_zero_cap(void) {
     dst[0] = 'x';
     dv_copy(dst, 0, src);
     CHECK("dv_copy  zero cap", dst[0] == 'x');
+}
+
+/* dv_copy with a size-one buffer should yield an empty string. */
+static void test_dv_copy_dest_size_one(void) {
+    char dst[1];
+    VARCHAR(src, 2);
+    strcpy(src.arr, "a");
+    src.len = 1;
+    dv_copy(dst, sizeof(dst), src);
+    CHECK("dv_copy  tiny", dst[0] == '\0');
 }
 
 /*
@@ -184,9 +231,15 @@ int main(int argc, char **argv) {
     test_vd_copy_empty();
     test_vd_copy_large();
 
+    test_zvd_copy();
+    test_zvd_copy_overflow();
+    test_zvd_copy_empty();
+    test_zvd_copy_large();
+
     test_dv_copy();
     test_dv_copy_overflow();
     test_dv_copy_empty();
+    test_dv_copy_dest_size_one();
     test_dv_copy_zero_cap();
     test_dv_copy_large();
 

@@ -45,6 +45,39 @@ static void test_vf_copy_empty(void) {
     CHECK("vf_copy empty", dst.len == 0);
 }
 
+/* zvf_copy ensures the destination is always NUL terminated. */
+static void test_zvf_copy(void) {
+    VARCHAR(dst, 6);
+    zvf_copy(dst, "abc");
+    CHECK("zvf_copy len", dst.len == 3 && strcmp(dst.arr, "abc") == 0);
+}
+
+/* Overflow using zvf_copy clears the result and leaves a terminator. */
+static void test_zvf_copy_overflow(void) {
+    VARCHAR(dst, 3);
+    zvf_copy(dst, "abcd");
+    CHECK("zvf_copy overflow", dst.len == 0 && dst.arr[0] == '\0');
+}
+
+/* Empty strings copy cleanly with zvf_copy. */
+static void test_zvf_copy_empty(void) {
+    VARCHAR(dst, 2);
+    zvf_copy(dst, "");
+    CHECK("zvf_copy empty", dst.len == 0 && dst.arr[0] == '\0');
+}
+
+/* Large constant data should copy and remain terminated. */
+static void test_zvf_copy_large(void) {
+    enum { N = 8192 };
+    static char src[N + 1];
+    for (size_t i = 0; i < N; i++) src[i] = 'e';
+    src[N] = '\0';
+    VARCHAR(dst, N + 1);
+    zvf_copy(dst, src);
+    int ok = (dst.len == N && dst.arr[N] == '\0' && memcmp(dst.arr, src, N) == 0);
+    CHECK("zvf_copy large", ok);
+}
+
 /*
  * Verify vf_copy can handle copying a large constant string into a VARCHAR
  * without truncation or corruption.
@@ -120,6 +153,11 @@ int main(int argc, char **argv) {
     test_vf_copy_overflow();
     test_vf_copy_empty();
     test_vf_copy_large();
+
+    test_zvf_copy();
+    test_zvf_copy_overflow();
+    test_zvf_copy_empty();
+    test_zvf_copy_large();
 
     test_fv_copy();
     test_fv_copy_overflow();
