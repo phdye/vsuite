@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#include "vsuite/v.h"
-#include "vsuite/dv.h"
+#include "vsuite/varchar.h"
+#include "vsuite/cstr.h"
 #include <stdlib.h>
 
 static int failures = 0;

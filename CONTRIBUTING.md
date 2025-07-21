@@ -67,7 +67,7 @@ example, a fixed/dynamic comparison routine might be called `dv_strcmp`.
 
 Simple helper functions that need to appear in headers should be declared
 `static inline`. For instance, `dv_dup_fcn` is defined this way in
-`include/vsuite/dv.h`:
+`include/vsuite/cstr.h`:
 
 ```c
 static inline char *dv_dup_fcn(const char *src_buf, unsigned short src_len)

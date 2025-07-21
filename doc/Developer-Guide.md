@@ -10,15 +10,13 @@ This guide summarizes the design of VSuite and explains the naming conventions f
 - [Error Handling and Truncation](#error-handling-and-truncation)
 - [Macro Reference](#macro-reference)
   - [Declaration](#declaration)
-  - [VARCHAR utilities (`v.h`)](#core-utilities-vh) 
-  - [Zero-terminated variant (`zv.h`)](#zero-terminated-variant-zvh)
+  - [VARCHAR utilities (`varchar.h`)](#core-utilities-varcharh)
+  - [Zero-terminated variant (`zvarchar.h`)](#zero-terminated-variant-zvarcharh)
   - [Interop helpers](#interop-helpers)
     - VARCHAR <-> Fixed:
-      - [`vf.h`](#vfh)
-      - [`fv.h`](#fvh) 
+      - [`fixed.h`](#fixedh)
     - VARCHAR <-> Dynamic:
-      - [`vd.h`](#vdh)
-      - [`dv.h`](#dvh)
+      - [`cstr.h`](#cstrh)
 - [Further Reading](#further-reading)
 
 ## Design Overview
@@ -112,7 +110,7 @@ VARCHAR(buf, 32);   /* buf.len and buf.arr available */
 `varchar_t` and `varchar_buf_t` provide type aliases for a generic
 `VARCHAR` and its buffer field.
 
-### Core utilities (`v.h`)
+### Core utilities (`varchar.h`)
 
 - `V_SIZE(v)` – capacity of `v` in bytes.
 - `V_BUF(v)` – pointer to the underlying array.
@@ -160,7 +158,7 @@ v_upper(tmp);                   /* "ABC" */
 
 ### Interop helpers
 
-#### `dv.h`
+#### `cstr.h`
 
 - `dv_copy(dst, cap, src)` – copy a fixed `VARCHAR` into a dynamic buffer.
 
@@ -176,26 +174,6 @@ char *dup = dv_dup(tmp);
 free(dup);
 ```
 
-#### `fv.h`
-
-- `fv_copy(dst, src)` – copy a fixed `VARCHAR` into a fixed array.
-
-```c
-char fixed[8];
-fv_copy(fixed, tmp);
-```
-
-#### `vf.h`
-
-- `vf_copy(dst, csrc)` – copy from a fixed C string into a `VARCHAR`.
-
-```c
-VARCHAR(v, 8);
-vf_copy(v, "hello");
-```
-
-#### `vd.h`
-
 - `vd_copy(vdst, dsrc)` – copy from a dynamic C string into a fixed
   `VARCHAR`.
 
@@ -204,7 +182,23 @@ const char *dyn = getenv("HOME");
 vd_copy(tmp, dyn);
 ```
 
-### Zero-terminated variant (`zv.h`)
+#### `fixed.h`
+
+- `fv_copy(dst, src)` – copy a fixed `VARCHAR` into a fixed array.
+
+```c
+char fixed[8];
+fv_copy(fixed, tmp);
+```
+
+- `vf_copy(dst, csrc)` – copy from a fixed C string into a `VARCHAR`.
+
+```c
+VARCHAR(v, 8);
+vf_copy(v, "hello");
+```
+
+### Zero-terminated variant (`zvarchar.h`)
 
 These macros mirror the `v_` operations but guarantee that the destination is
 NUL terminated.
