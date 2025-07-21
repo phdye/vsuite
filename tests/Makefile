@@ -1,4 +1,4 @@
-PROGRAMS = test-v.exe test-zv.exe test-vf.exe test-fv.exe test-vd.exe test-dv.exe
+PROGRAMS = test-varchar test-zvarchar test-fixed test-cstr
 
 INC=../include
 
@@ -10,23 +10,18 @@ CFLAGS = -Wall -Wextra -std=gnu99 -I${INC}
 
 all: $(PROGRAMS)
 
-%.exe: %.c
+%: %.c
 	gcc $(CFLAGS) -o $@ $<
 
-test-v.exe:    test-v.c    ${IV}/varchar.h
-test-zv.exe:   test-zv.c   ${IV}/varchar.h  ${IV}/zvarchar.h
-test-vf.exe:   test-vf.c   ${IV}/varchar.h  ${IV}/fixed.h
-test-fv.exe:   test-fv.c   ${IV}/varchar.h  ${IV}/fixed.h
-test-vd.exe:   test-vd.c   ${IV}/varchar.h  ${IV}/cstr.h
-test-dv.exe:   test-dv.c   ${IV}/varchar.h  ${IV}/cstr.h
+test-varchar.ex:    test-varchar.c    ${IV}/varchar.h
+test-zvarchar:   test-zvarchar.c   ${IV}/varchar.h  ${IV}/zvarchar.h
+test-fixed:      test-fixed.c      ${IV}/varchar.h  ${IV}/fixed.h
+test-cstr:       test-cstr.c       ${IV}/varchar.h  ${IV}/cstr.h
 
 test: all
-	./test-v.exe
-	./test-zv.exe
-	./test-vf.exe
-	./test-fv.exe
-	./test-vd.exe
-	./test-dv.exe
+	@ for target in $(PROGRAMS) ; do \
+            ( set -x && ./$${target} ) ; \
+        done
 
 clean:
-	rm -f $(PROGRAMS) *.o
+	rm -f *.o $(PROGRAMS)
