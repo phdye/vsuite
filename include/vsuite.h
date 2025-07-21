@@ -1,5 +1,5 @@
 #ifndef VSUITE_H
-$define VSUITE_H
+#define VSUITE_H
 
 #include <vsuite/varchar.h>
 

@@ -46,6 +46,16 @@ static void test_valid(void) {
     CHECK("v_valid overflow", !v_valid(v));    /* length exceeds capacity */
 }
 
+/* v_has_capacity() confirms enough free space remains for N bytes. */
+static void test_has_capacity(void) {
+    VARCHAR(v, 5);
+    v.len = 3;
+    CHECK("v_has_capacity ok", v_has_capacity(v, 4));      /* 1 byte free */
+    CHECK("v_has_capacity full", !v_has_capacity(v, 3));   /* no space */
+    CHECK("v_has_capacity big", !v_has_capacity(v, 6));    /* beyond size */
+    CHECK("v_has_capacity max", v_has_capacity(v, 5));     /* exactly fits */
+}
+
 /*
  * Basic copy from one VARCHAR to another.  First copy succeeds when the
  * destination is large enough, then a second copy to a too-small buffer
@@ -241,6 +251,7 @@ int main(int argc, char **argv) {
 
     test_init_clear();
     test_valid();
+    test_has_capacity();
 
     test_copy();
     test_copy_exact();
