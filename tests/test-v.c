@@ -2,7 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "vsuite/v.h"
+#include "vsuite/varchar.h"
 
 static int failures = 0;
 static int verbose = 0;

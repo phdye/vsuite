@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "vsuite/v.h"
-#include "vsuite/vd.h"
+#include "vsuite/varchar.h"
+#include "vsuite/cstr.h"
 
 static int failures = 0;
 static int verbose = 0;

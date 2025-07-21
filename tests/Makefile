@@ -13,12 +13,12 @@ all: $(PROGRAMS)
 %.exe: %.c
 	gcc $(CFLAGS) -o $@ $<
 
-test-v.exe:    test-v.c    ${IV}/v.h
-test-zv.exe:   test-zv.c   ${IV}/v.h  ${IV}/zv.h
-test-vf.exe:   test-vf.c   ${IV}/v.h  ${IV}/vf.h
-test-fv.exe:   test-fv.c   ${IV}/v.h  ${IV}/fv.h
-test-vd.exe:   test-vd.c   ${IV}/v.h  ${IV}/vd.h
-test-dv.exe:   test-dv.c   ${IV}/v.h  ${IV}/dv.h
+test-v.exe:    test-v.c    ${IV}/varchar.h
+test-zv.exe:   test-zv.c   ${IV}/varchar.h  ${IV}/zvarchar.h
+test-vf.exe:   test-vf.c   ${IV}/varchar.h  ${IV}/fixed.h
+test-fv.exe:   test-fv.c   ${IV}/varchar.h  ${IV}/fixed.h
+test-vd.exe:   test-vd.c   ${IV}/varchar.h  ${IV}/cstr.h
+test-dv.exe:   test-dv.c   ${IV}/varchar.h  ${IV}/cstr.h
 
 test: all
 	./test-v.exe

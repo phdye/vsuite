@@ -31,7 +31,7 @@ Most operations are implemented as macros.  The snippet below copies one
 
 ```c
 #include <string.h>
-#include <vsuite/v.h>
+#include <vsuite/varchar.h>
 
 int main(void) {
     VARCHAR(src, 16);

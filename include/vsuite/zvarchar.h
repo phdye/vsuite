@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <ctype.h>
 
-#include <vsuite/v.h>
+#include <vsuite/varchar.h>
 
 /* zv_valid: Check if a fixed VARCHAR is zero-terminated */
 #define zv_valid(v) \

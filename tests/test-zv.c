@@ -2,7 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "vsuite/zv.h"
+#include "vsuite/zvarchar.h"
 
 static int failures = 0;
 static int verbose = 0;
