@@ -7,6 +7,13 @@
 
 #include <vsuite/varchar.h>
 
+/* How many bytes are available for content in a zero-terminated VARCHAR */
+#define ZV_CAPACITY(v) (V_SIZE(v) - 1)
+
+/* Check if Fixed VARCHAR has at least capacity for a string of size N */
+#define zv_has_capacity(v, N) \
+    ((N) <= ZV_CAPACITY(v))
+
 /* zv_valid: Check if a fixed VARCHAR is zero-terminated */
 #define zv_valid(v) \
     (((v).len < V_SIZE(v)) && (V_BUF(v)[(v).len] == '\0'))
@@ -16,7 +23,7 @@
     do {                                         \
         if ((v).len >= V_SIZE(v))                \
             (v).len = V_SIZE(v) - 1;             \
-        V_BUF(v)[(v).len] = '\0';               \
+        V_BUF(v)[(v).len] = '\0';                \
     } while (0)
 
 /* zv_init: zero-length and terminate */
