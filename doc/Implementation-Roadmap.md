@@ -48,10 +48,10 @@ Now that you have single-object support, begin pairwise operations between:
 | Macro/Function        | Description                                                 |
 | --------------------- | ----------------------------------------------------------- |
 | `v_copy(fixed_src)`   | Copy from one fixed `VARCHAR` to another.                   |
-| `vf_copy(fixed_cstr)` | Copy from fixed C-string into fixed `VARCHAR`.              |
+| `vf_copy(fixed_pstr)` | Copy from fixed C-string into fixed `VARCHAR`.              |
 | `fv_copy(varchar)`    | Copy from fixed `VARCHAR` to fixed C-string.                |
 | `v_cmp(v2)`           | Case-sensitive compare with another fixed `VARCHAR`.        |
-| `vf_cmp(cstr)`        | Compare with a fixed C-string.                              |
+| `vf_cmp(pstr)`        | Compare with a fixed C-string.                              |
 | `v_casecmp()`         | Case-insensitive variant of compare.                        |
 | `v_concat()`          | Append one fixed `VARCHAR` to another, safe capacity aware. |
 
@@ -78,7 +78,7 @@ Only proceed once fixed operations are solid.
 
 | Prefix        | Description                                    |
 | ------------- | ---------------------------------------------- |
-| `vd_` / `dv_` | `VARCHAR` ↔ dynamic string (`malloc`-backed).  |
+| `dv_`         | dynamic string (`malloc`-backed) ↔ fixed `VARCHAR`. |
 | `vp_` / `pv_` | `VARCHAR` ↔ `char *`, possibly unknown origin. |
 | `vx_` / `xv_` | `VARCHAR` ↔ `VARCHAR *`.                       |
 

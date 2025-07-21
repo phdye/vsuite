@@ -2,7 +2,7 @@ TARGETS = tests
 
 .PHONY: all test clean
 
-all test :
+all test vtest :
 	for target in $(TARGETS) ; do ( cd $${target} && make $@ ) ; done
 
 clean :

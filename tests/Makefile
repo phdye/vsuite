@@ -1,4 +1,4 @@
-PROGRAMS = test-varchar test-zvarchar test-fixed test-cstr
+PROGRAMS = test-varchar test-zvarchar test-fixed test-pstr
 
 INC=../include
 
@@ -16,11 +16,16 @@ all: $(PROGRAMS)
 test-varchar.ex:    test-varchar.c    ${IV}/varchar.h
 test-zvarchar:   test-zvarchar.c   ${IV}/varchar.h  ${IV}/zvarchar.h
 test-fixed:      test-fixed.c      ${IV}/varchar.h  ${IV}/fixed.h
-test-cstr:       test-cstr.c       ${IV}/varchar.h  ${IV}/cstr.h
+test-pstr:       test-pstr.c       ${IV}/varchar.h  ${IV}/pstr.h
 
 test: all
 	@ for target in $(PROGRAMS) ; do \
             ( set -x && ./$${target} ) ; \
+        done
+
+vtest: all
+	@ for target in $(PROGRAMS) ; do \
+            ( set -x && ./$${target} --verbose ) ; \
         done
 
 clean:
