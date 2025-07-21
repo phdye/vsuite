@@ -17,40 +17,61 @@ static int verbose = 0;
     } \
 } while (0)
 
+/*
+ * Test copying from a fixed C string literal into a VARCHAR.  The source
+ * fits entirely so the resulting length should equal the literal length and
+ * the bytes should match exactly.
+ */
 static void test_vf_copy(void) {
     VARCHAR(dst, 6);
     vf_copy(dst, "abc");
     CHECK("vf_copy len", dst.len == 3 && memcmp(dst.arr, "abc", 3) == 0);
 }
 
+/*
+ * When the literal does not fit the macro clears the destination length to
+ * signal failure.
+ */
 static void test_vf_copy_overflow(void) {
     VARCHAR(dst, 3);
     vf_copy(dst, "abcd");
     CHECK("vf_copy overflow", dst.len == 0);
 }
 
+/* A zero-length literal should yield an empty VARCHAR. */
 static void test_vf_copy_empty(void) {
     VARCHAR(dst, 4);
     vf_copy(dst, "");
     CHECK("vf_copy empty", dst.len == 0);
 }
 
+/*
+ * Copying from a VARCHAR into a fixed C array should produce an identical
+ * NUL terminated string when the buffer is large enough.
+ */
 static void test_fv_copy(void) {
     char dst[6];
     VARCHAR(src, 6);
-    strcpy(src.arr, "abc"); src.len = 3;
+    strcpy(src.arr, "abc");
+    src.len = 3;
     fv_copy(dst, src);
     CHECK("fv_copy len", strcmp(dst, "abc") == 0);
 }
 
+/*
+ * If the destination array is too small fv_copy() must write an empty
+ * string so callers know truncation occurred.
+ */
 static void test_fv_copy_overflow(void) {
     char dst[4];
     VARCHAR(src, 6);
-    strcpy(src.arr, "abcd"); src.len = 4;
+    strcpy(src.arr, "abcd");
+    src.len = 4;
     fv_copy(dst, src);
     CHECK("fv_copy overflow", dst[0] == '\0');
 }
 
+/* Copying an empty VARCHAR should yield an empty C string. */
 static void test_fv_copy_empty(void) {
     char dst[4];
     VARCHAR(src, 4);
