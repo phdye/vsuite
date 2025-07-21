@@ -36,7 +36,8 @@
 static inline char *dv_dup_fcn(const char *src_buf, unsigned short src_len)
 {
     char *d = malloc(src_len + 1);
-    if (!d) return NULL;
+    if (!d)
+        return NULL;
     memcpy(d, src_buf, src_len);
     d[src_len] = '\0';
     return d;
