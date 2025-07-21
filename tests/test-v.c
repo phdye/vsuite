@@ -62,6 +62,22 @@ static void test_copy_empty(void) {
     CHECK("v_copy empty", n == 0 && dst.len == 0);
 }
 
+static void test_copy_self(void) {
+    VARCHAR(v, 5);
+    strcpy(v.arr, "abc");
+    v.len = 3;
+    int n = v_copy(v, v);
+    CHECK("v_copy self", n == 3 && v.len == 3 && memcmp(v.arr, "abc", 3) == 0);
+}
+
+static void test_large_copy(void) {
+    enum { N = 4096 };
+    VARCHAR(src, N); VARCHAR(dst, N);
+    memset(src.arr, 'a', N); src.len = N;
+    int n = v_copy(dst, src);
+    CHECK("v_copy large", n == N && dst.len == N && memcmp(dst.arr, src.arr, N) == 0);
+}
+
 static void test_trim(void) {
     VARCHAR(v1, 10); VARCHAR(v2, 10); VARCHAR(v3, 10);
     strcpy(v1.arr, "  hi"); v1.len = 4; v_ltrim(v1);
@@ -112,22 +128,6 @@ static void test_case_empty(void) {
     CHECK("v_lower empty", v.len == 0);
 }
 
-static void test_copy_self(void) {
-    VARCHAR(v, 5);
-    strcpy(v.arr, "abc");
-    v.len = 3;
-    int n = v_copy(v, v);
-    CHECK("v_copy self", n == 3 && v.len == 3 && memcmp(v.arr, "abc", 3) == 0);
-}
-
-static void test_large_copy(void) {
-    enum { N = 4096 };
-    VARCHAR(src, N); VARCHAR(dst, N);
-    memset(src.arr, 'a', N); src.len = N;
-    int n = v_copy(dst, src);
-    CHECK("v_copy large", n == N && dst.len == N && memcmp(dst.arr, src.arr, N) == 0);
-}
-
 static void test_case(void) {
     VARCHAR(v, 4);
     strcpy(v.arr, "aB3"); v.len = 3;
@@ -144,13 +144,13 @@ int main(int argc, char **argv) {
     test_copy();
     test_copy_exact();
     test_copy_empty();
+    test_large_copy();
+    test_copy_self();
     test_trim();
     test_trim_noop();
     test_trim_all_spaces();
     test_trim_empty();
-    test_large_copy();
     test_case_empty();
-    test_copy_self();
     test_case();
     if (failures == 0) {
         printf(verbose ? "\nAll tests passed.\n" : "\n");
