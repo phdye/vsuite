@@ -16,7 +16,7 @@ This guide summarizes the design of VSuite and explains the naming conventions f
     - VARCHAR <-> Fixed:
       - [`fixed.h`](#fixedh)
     - VARCHAR <-> Dynamic:
-      - [`cstr.h`](#cstrh)
+      - [`pstr.h`](#pstrh)
 - [Further Reading](#further-reading)
 
 ## Design Overview
@@ -77,7 +77,7 @@ src.len = 5;
 v_copy(dst, src);           /* copies when dst is large enough */
 ```
 
-Copy into a dynamic string:
+Copy into a C string buffer:
 
 ```c
 char buf[8];
@@ -86,7 +86,7 @@ strcpy(v.arr, "hi");
 v.len = 2;
 
 /* writes NUL on failure */
-dv_copy(buf, sizeof buf, v);
+pv_copy(buf, sizeof buf, v);
 ```
 
 ## Error Handling and Truncation
@@ -159,13 +159,13 @@ v_upper(tmp);                   /* "ABC" */
 
 ### Interop helpers
 
-#### `cstr.h`
+#### `pstr.h`
 
-- `dv_copy(dst, cap, src)` – copy a fixed `VARCHAR` into a dynamic buffer.
+- `pv_copy(dst, cap, src)` – copy a fixed `VARCHAR` into a C string buffer.
 
 ```c
 char out[5];
-dv_copy(out, sizeof out, tmp);
+pv_copy(out, sizeof out, tmp);
 ```
 
 - `dv_dup(src)` – allocate a new C string containing the contents of `src`.
@@ -175,20 +175,20 @@ char *dup = dv_dup(tmp);
 free(dup);
 ```
 
-- `vd_copy(vdst, dsrc)` – copy from a dynamic C string into a fixed
+- `vp_copy(vdst, dsrc)` – copy from a C string pointer into a fixed
   `VARCHAR`.
 
 ```c
 const char *dyn = getenv("HOME");
-vd_copy(tmp, dyn);
+vp_copy(tmp, dyn);
 ```
 
- - `zvd_copy(vdst, dsrc)` – like `vd_copy` but always NUL terminates the
+ - `zvp_copy(vdst, dsrc)` – like `vp_copy` but always NUL terminates the
    destination even when the source overflows.
 
 ```c
 const char *src = "abc";
-zvd_copy(tmp, src);
+zvp_copy(tmp, src);
 ```
 
 #### `fixed.h`

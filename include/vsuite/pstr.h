@@ -1,5 +1,5 @@
-#ifndef VSUITE_CSTR_H
-#define VSUITE_CSTR_H
+#ifndef VSUITE_PSTR_H
+#define VSUITE_PSTR_H
 
 #include <stdlib.h>
 #include <string.h>
@@ -8,15 +8,15 @@
 #include <vsuite/varchar.h>
 
 /*
- * vd_copy() - Copy from a dynamic C string into a fixed VARCHAR.
+ * vp_copy() - Copy from a C string pointer into a fixed VARCHAR.
  * @vdst: Destination VARCHAR.
- * @dsrc: Source C string.
+ * @dsrc: Source C string pointer.
  *
  * The copy only succeeds when the source fits entirely within the destination
  * buffer.  Otherwise ``vdst.len`` is cleared to zero so callers can detect the
  * overflow.
  */
-#define vd_copy(vdst, dsrc)                                                   \
+#define vp_copy(vdst, dsrc)                                                   \
     do {                                                                      \
         size_t __n = strlen(dsrc);                                            \
         if (__n < V_SIZE(vdst)) {                                             \
@@ -28,22 +28,22 @@
     } while (0)
 
 /*
- * zvd_copy() - Copy a dynamic C string and always NUL terminate the result.
+ * zvp_copy() - Copy a C string pointer and always NUL terminate the result.
  */
-#define zvd_copy(vdst, dsrc)                                                  \
+#define zvp_copy(vdst, dsrc)                                                  \
     do {                                                                      \
-        vd_copy(vdst, dsrc);                                                  \
+        vp_copy(vdst, dsrc);                                                  \
         zv_zero_term(vdst);                                                   \
     } while (0)
 
 /*
- * dv_copy() - Copy a VARCHAR into a preallocated dynamic C string buffer.
+ * pv_copy() - Copy a VARCHAR into a preallocated C string buffer.
  *
  * ``dstr`` must have capacity ``dcap``. When the source fits the data is copied
  * and a terminator appended.  Otherwise the destination is cleared to an empty
  * string (if ``dcap`` is non-zero).
  */
-#define dv_copy(dstr, dcap, vsrc)                                             \
+#define pv_copy(dstr, dcap, vsrc)                                             \
     do {                                                                      \
         if ((vsrc).len < (dcap)) {                                            \
             memcpy(dstr, V_BUF(vsrc), (vsrc).len);                            \
@@ -74,4 +74,4 @@ static inline char *dv_dup_fcn(const char *src_buf, unsigned short src_len)
     return d;
 }
 
-#endif /* VSUITE_CSTR_H */
+#endif /* VSUITE_PSTR_H */

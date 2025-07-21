@@ -78,7 +78,7 @@ Only proceed once fixed operations are solid.
 
 | Prefix        | Description                                    |
 | ------------- | ---------------------------------------------- |
-| `vd_` / `dv_` | `VARCHAR` ↔ dynamic string (`malloc`-backed).  |
+| `dv_`         | dynamic string (`malloc`-backed) ↔ fixed `VARCHAR`. |
 | `vp_` / `pv_` | `VARCHAR` ↔ `char *`, possibly unknown origin. |
 | `vx_` / `xv_` | `VARCHAR` ↔ `VARCHAR *`.                       |
 
