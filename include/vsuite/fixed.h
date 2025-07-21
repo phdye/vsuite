@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stddef.h>
 
+#include <vsuite/zvarchar.h>
+
 /* Copy from Fixed C String to Fixed VARCHAR */
 #define vf_copy(vdst, csrc)                                                   \
     do {                                                                      \
@@ -14,6 +16,18 @@
         } else {                                                              \
             (vdst).len = 0;                                                   \
         }                                                                     \
+    } while (0)
+
+/* Copy from Fixed C String to Fixed VARCHAR, zero-byte terminated.
+ * This ensures the destination is properly terminated after copying.
+ * NOTE: Will truncate target to apply zero-byte terminator.
+ * It is recommended to verify available capacity using v_has_capacity()
+ * before calling this macro.
+ */
+#define zvf_copy(vdst, dsrc)                                                  \
+    do {                                                                      \
+        vf_copy(vdst, csrc);                                                  \
+        zv_zero_term(vdst);                                                   \
     } while (0)
 
 /* Copy from Fixed VARCHAR to Fixed C String */
