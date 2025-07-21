@@ -46,6 +46,20 @@ static void test_zero_term(void) {
     CHECK("zv_zero_term cut", v2.len == 3 && v2.arr[3] == '\0');
 }
 
+static void test_zero_term_idempotent(void) {
+    VARCHAR(v,4);
+    strcpy(v.arr, "abc");
+    v.len = 3;
+    zv_zero_term(v);
+    CHECK("zv_zero_term idempotent", v.len == 3 && strcmp(v.arr, "abc") == 0);
+}
+
+static void test_zero_term_empty(void) {
+    VARCHAR(v,4); v.len = 0; v.arr[0] = 'x';
+    zv_zero_term(v);
+    CHECK("zv_zero_term empty", v.len == 0 && v.arr[0] == '\0');
+}
+
 static void test_copy(void) {
     VARCHAR(src,6); VARCHAR(dst,6); VARCHAR(small,3);
     strcpy(src.arr, "abc"); src.len = 3;
@@ -67,6 +81,22 @@ static void test_copy_empty(void) {
     src.arr[0] = '\0'; src.len = 0;
     int n = zv_copy(dst, src);
     CHECK("zv_copy empty", n == 0 && dst.len == 0 && dst.arr[0] == '\0');
+}
+
+static void test_copy_self(void) {
+    VARCHAR(v,5);
+    strcpy(v.arr, "abc");
+    v.len = 3;
+    int n = zv_copy(v, v);
+    CHECK("zv_copy self", n == 3 && v.len == 3 && strcmp(v.arr, "abc") == 0);
+}
+
+static void test_large_copy(void) {
+    enum { N = 4096 };
+    VARCHAR(src, N); VARCHAR(dst, N);
+    memset(src.arr, 'a', N-1); src.arr[N-1] = '\0'; src.len = N-1;
+    int n = zv_copy(dst, src);
+    CHECK("zv_copy large", n == N-1 && dst.len == N-1 && memcmp(dst.arr, src.arr, N-1) == 0 && dst.arr[N-1] == '\0');
 }
 
 static void test_trim(void) {
@@ -93,12 +123,6 @@ static void test_trim_all_spaces(void) {
     CHECK("zv_trim all", v.len == 0 && v.arr[0] == '\0');
 }
 
-static void test_zero_term_empty(void) {
-    VARCHAR(v,4); v.len = 0; v.arr[0] = 'x';
-    zv_zero_term(v);
-    CHECK("zv_zero_term empty", v.len == 0 && v.arr[0] == '\0');
-}
-
 static void test_trim_empty(void) {
     VARCHAR(v,5);
     v.arr[0] = '\0';
@@ -111,6 +135,14 @@ static void test_trim_empty(void) {
     CHECK("zv_trim empty", v.len == 0 && v.arr[0] == '\0');
 }
 
+static void test_case(void) {
+    VARCHAR(v,4);
+    strcpy(v.arr, "aB3"); v.len = 3; zv_upper(v);
+    CHECK("zv_upper", strcmp(v.arr, "AB3") == 0 && v.arr[3] == '\0');
+    zv_lower(v);
+    CHECK("zv_lower", strcmp(v.arr, "ab3") == 0 && v.arr[3] == '\0');
+}
+
 static void test_case_empty(void) {
     VARCHAR(v,1);
     v.arr[0] = '\0';
@@ -121,56 +153,24 @@ static void test_case_empty(void) {
     CHECK("zv_lower empty", v.len == 0 && v.arr[0] == '\0');
 }
 
-static void test_copy_self(void) {
-    VARCHAR(v,5);
-    strcpy(v.arr, "abc");
-    v.len = 3;
-    int n = zv_copy(v, v);
-    CHECK("zv_copy self", n == 3 && v.len == 3 && strcmp(v.arr, "abc") == 0);
-}
-
-static void test_zero_term_idempotent(void) {
-    VARCHAR(v,4);
-    strcpy(v.arr, "abc");
-    v.len = 3;
-    zv_zero_term(v);
-    CHECK("zv_zero_term idempotent", v.len == 3 && strcmp(v.arr, "abc") == 0);
-}
-
-static void test_large_copy(void) {
-    enum { N = 4096 };
-    VARCHAR(src, N); VARCHAR(dst, N);
-    memset(src.arr, 'a', N-1); src.arr[N-1] = '\0'; src.len = N-1;
-    int n = zv_copy(dst, src);
-    CHECK("zv_copy large", n == N-1 && dst.len == N-1 && memcmp(dst.arr, src.arr, N-1) == 0 && dst.arr[N-1] == '\0');
-}
-
-static void test_case(void) {
-    VARCHAR(v,4);
-    strcpy(v.arr, "aB3"); v.len = 3; zv_upper(v);
-    CHECK("zv_upper", strcmp(v.arr, "AB3") == 0 && v.arr[3] == '\0');
-    zv_lower(v);
-    CHECK("zv_lower", strcmp(v.arr, "ab3") == 0 && v.arr[3] == '\0');
-}
-
 int main(int argc, char **argv) {
     for (int i=1;i<argc;i++) if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose")) verbose = 1;
     test_init_clear();
     test_valid();
     test_zero_term();
+    test_zero_term_idempotent();
+    test_zero_term_empty();
     test_copy();
     test_copy_exact();
     test_copy_empty();
+    test_copy_self();
+    test_large_copy();
     test_trim();
     test_trim_noop();
     test_trim_all_spaces();
     test_trim_empty();
-    test_zero_term_empty();
-    test_zero_term_idempotent();
-    test_case_empty();
-    test_copy_self();
-    test_large_copy();
     test_case();
+    test_case_empty();
     if (failures == 0) {
         printf(verbose ? "\nAll tests passed.\n" : "\n");
     } else {
