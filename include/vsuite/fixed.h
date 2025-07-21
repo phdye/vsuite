@@ -6,7 +6,14 @@
 
 #include <vsuite/zvarchar.h>
 
-/* Copy from Fixed C String to Fixed VARCHAR */
+/*
+ * vf_copy() - Copy from a constant C string into a fixed VARCHAR.
+ * @vdst: Destination VARCHAR.
+ * @csrc: Constant source C string.
+ *
+ * The destination length is updated only when the literal fits completely.
+ * Otherwise ``vdst.len`` is cleared to zero so callers can detect overflow.
+ */
 #define vf_copy(vdst, csrc)                                                   \
     do {                                                                      \
         size_t __n = strlen(csrc);                                            \
@@ -18,11 +25,12 @@
         }                                                                     \
     } while (0)
 
-/* Copy from Fixed C String to Fixed VARCHAR, zero-byte terminated.
- * This ensures the destination is properly terminated after copying.
- * NOTE: Will truncate target to apply zero-byte terminator.
- * It is recommended to verify available capacity using v_has_capacity()
- * before calling this macro.
+/*
+ * zvf_copy() - Copy a constant C string and always NUL terminate the result.
+ *
+ * The macro behaves like vf_copy() but ensures the destination is terminated
+ * even when truncation occurs.  Callers should verify capacity beforehand when
+ * possible.
  */
 #define zvf_copy(vdst, dsrc)                                                  \
     do {                                                                      \
@@ -30,7 +38,13 @@
         zv_zero_term(vdst);                                                   \
     } while (0)
 
-/* Copy from Fixed VARCHAR to Fixed C String */
+/*
+ * fv_copy() - Copy a VARCHAR into a fixed-size C string buffer.
+ *
+ * When the destination buffer is large enough the contents are copied and a
+ * terminating NUL is appended.  If the buffer is too small the destination is
+ * cleared to an empty string so the caller can detect the failure.
+ */
 #define fv_copy(cdst, vsrc)                                                   \
     do {                                                                      \
         if ((vsrc).len < sizeof(cdst)) {                                      \
