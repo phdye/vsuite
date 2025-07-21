@@ -19,6 +19,13 @@
         }                                                                     \
     } while (0)
 
+/* Copy from Dynamic C String to Fixed VARCHAR, zero-byte terminated */
+#define zvd_copy(vdst, dsrc)                                                  \
+    do {                                                                      \
+        vd_copy(vdst, dsrc);                                                  \
+        zv_zero_term(vdst);                                                   \
+    } while (0)
+
 /* Copy from Fixed VARCHAR to Dynamic C String (preallocated dest) */
 #define dv_copy(dstr, dcap, vsrc)                                             \
     do {                                                                      \
