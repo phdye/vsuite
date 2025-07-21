@@ -246,6 +246,22 @@ static void test_mass_case(void) {
         if (v.arr[i] != 'a') { CHECK("v_mass_lower", 0); break; }
 }
 
+/*
+ * Test helper macros V_SIZE(), V_BUF() and varchar_buf_t.  V_SIZE should
+ * report the declared capacity while V_BUF must point at the underlying
+ * array.  The varchar_buf_t typedef resolves to a single character array.
+ */
+static void test_helper_macros(void) {
+    VARCHAR(v, 4);
+    strcpy(v.arr, "abc");
+    v.len = 3;
+    CHECK("V_SIZE", V_SIZE(v) == 4);
+    char *p = V_BUF(v);
+    p[0] = 'x';
+    CHECK("V_BUF", v.arr[0] == 'x');
+    CHECK("varchar_buf_t", sizeof(varchar_buf_t) == 1);
+}
+
 int main(int argc, char **argv) {
     for (int i=1;i<argc;i++) if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose")) verbose = 1;
 
@@ -271,6 +287,7 @@ int main(int argc, char **argv) {
     test_case_empty();
     test_case();
     test_mass_case();
+    test_helper_macros();
 
     if (failures == 0) {
         printf(verbose ? "\nAll tests passed.\n" : "\n");

@@ -86,6 +86,14 @@ static void test_has_capacity(void) {
                                   zv_has_capacity(tiny, 0));
 }
 
+/* ZV_CAPACITY reports the usable size excluding the terminator. */
+static void test_zv_capacity(void) {
+    VARCHAR(v, 5);
+    CHECK("ZV_CAPACITY", ZV_CAPACITY(v) == 4);
+    VARCHAR(tiny, 1);
+    CHECK("ZV_CAPACITY zero", ZV_CAPACITY(tiny) == 0);
+}
+
 /*
  * zv_zero_term() should ensure the string is terminated.  If the length is
  * within bounds it simply writes a terminator, otherwise it truncates the
@@ -327,6 +335,7 @@ int main(int argc, char **argv) {
     test_valid_zero_len_good_term();
     test_valid_zero_len_bad_term();
     test_has_capacity();
+    test_zv_capacity();
 
     test_zero_term();
     test_zero_term_idempotent();
