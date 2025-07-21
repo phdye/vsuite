@@ -70,6 +70,13 @@ static void test_copy_self(void) {
     CHECK("v_copy self", n == 3 && v.len == 3 && memcmp(v.arr, "abc", 3) == 0);
 }
 
+static void test_copy_dest_size_one(void) {
+    VARCHAR(src, 3); VARCHAR(dst, 1);
+    strcpy(src.arr, "ab"); src.len = 2;
+    int n = v_copy(dst, src);
+    CHECK("v_copy tiny", n == 0 && dst.len == 0);
+}
+
 static void test_large_copy(void) {
     enum { N = 4096 };
     VARCHAR(src, N); VARCHAR(dst, N);
@@ -119,6 +126,24 @@ static void test_trim_empty(void) {
     CHECK("v_trim empty", v.len == 0);
 }
 
+static void test_trim_tabs_newlines(void) {
+    VARCHAR(v1, 10); VARCHAR(v2, 10);
+    strcpy(v1.arr, "\thi\n"); v1.len = 4; v_ltrim(v1);
+    CHECK("v_ltrim misc", v1.len == 3 && memcmp(v1.arr, "hi\n", 3) == 0);
+
+    strcpy(v2.arr, "hi\t\n"); v2.len = 4; v_rtrim(v2);
+    CHECK("v_rtrim misc", v2.len == 2 && memcmp(v2.arr, "hi", 2) == 0);
+}
+
+static void test_upper_lower_nonalpha(void) {
+    VARCHAR(v, 5);
+    strcpy(v.arr, "a1!B"); v.len = 4;
+    v_upper(v);
+    CHECK("v_upper nonalpha", strcmp(v.arr, "A1!B") == 0 && v.len == 4);
+    v_lower(v);
+    CHECK("v_lower nonalpha", strcmp(v.arr, "a1!b") == 0 && v.len == 4);
+}
+
 static void test_case_empty(void) {
     VARCHAR(v, 3);
     v.len = 0;
@@ -145,11 +170,14 @@ int main(int argc, char **argv) {
     test_copy_exact();
     test_copy_empty();
     test_large_copy();
+    test_copy_dest_size_one();
     test_copy_self();
     test_trim();
     test_trim_noop();
     test_trim_all_spaces();
     test_trim_empty();
+    test_trim_tabs_newlines();
+    test_upper_lower_nonalpha();
     test_case_empty();
     test_case();
     if (failures == 0) {
