@@ -16,9 +16,9 @@ typedef VARCHAR(varchar_t, 1);
 #define V_SIZE(v) (sizeof((v).arr))
 #define V_BUF(v)  ((v).arr)
 
-/* Check if Fixed VARCHAR has at least capacity N */
+/* Check if Fixed VARCHAR has at least capacity for a string of size N */
 #define v_has_capacity(v, N) \
-    ((v).len < (N) && (N) <= V_SIZE(v))
+    ((N) <= V_SIZE(v))
 
 /* Initialize a fixed VARCHAR to empty string */
 #define v_init(v) ((v).len = 0)
