@@ -18,26 +18,45 @@ static int verbose = 0;
     } \
 } while (0)
 
+/*
+ * Initialization helpers for zero-terminated VARCHARS should both clear the
+ * length and write a terminator byte at position zero.
+ */
 static void test_init_clear(void) {
     VARCHAR(v, 5);
-    strcpy(v.arr, "abc"); v.len = 3;
+    strcpy(v.arr, "abc");
+    v.len = 3;
     zv_init(v);
     CHECK("zv_init", v.len == 0 && v.arr[0] == '\0');
-    strcpy(v.arr, "abc"); v.len = 3;
+    strcpy(v.arr, "abc");
+    v.len = 3;
     zv_clear(v);
     CHECK("zv_clear", v.len == 0 && v.arr[0] == '\0');
 }
 
+/*
+ * zv_valid() additionally checks that the byte after the last character is a
+ * NUL terminator.  This test covers the success case, an overflow case and a
+ * missing terminator case.
+ */
 static void test_valid(void) {
     VARCHAR(v, 4);
-    strcpy(v.arr, "abc"); v.len = 3; v.arr[3] = '\0';
+    strcpy(v.arr, "abc");
+    v.len = 3;
+    v.arr[3] = '\0';
     CHECK("zv_valid ok", zv_valid(v));
     v.len = 4;
-    CHECK("zv_valid len", !zv_valid(v));
-    v.len = 3; v.arr[3] = 'x';
-    CHECK("zv_valid term", !zv_valid(v));
+    CHECK("zv_valid len", !zv_valid(v));      /* length beyond buffer */
+    v.len = 3;
+    v.arr[3] = 'x';
+    CHECK("zv_valid term", !zv_valid(v));     /* no terminator */
 }
 
+/*
+ * zv_zero_term() should ensure the string is terminated.  If the length is
+ * within bounds it simply writes a terminator, otherwise it truncates the
+ * string.
+ */
 static void test_zero_term(void) {
     VARCHAR(v1, 4); memcpy(v1.arr, "abcx", 4); v1.len = 3; zv_zero_term(v1);
     CHECK("zv_zero_term keep", v1.len == 3 && v1.arr[3] == '\0');
@@ -46,6 +65,7 @@ static void test_zero_term(void) {
     CHECK("zv_zero_term cut", v2.len == 3 && v2.arr[3] == '\0');
 }
 
+/* Calling zv_zero_term() multiple times should not change data. */
 static void test_zero_term_idempotent(void) {
     VARCHAR(v,4);
     strcpy(v.arr, "abc");
@@ -54,12 +74,16 @@ static void test_zero_term_idempotent(void) {
     CHECK("zv_zero_term idempotent", v.len == 3 && strcmp(v.arr, "abc") == 0);
 }
 
+/* zv_zero_term() should handle empty strings and write the terminator. */
 static void test_zero_term_empty(void) {
-    VARCHAR(v,4); v.len = 0; v.arr[0] = 'x';
+    VARCHAR(v,4);
+    v.len = 0;
+    v.arr[0] = 'x';
     zv_zero_term(v);
     CHECK("zv_zero_term empty", v.len == 0 && v.arr[0] == '\0');
 }
 
+/* Even length zero strings must have a terminator byte. */
 static void test_valid_zero_len_bad_term(void) {
     VARCHAR(v, 2);
     v.arr[0] = 'x';
@@ -67,29 +91,40 @@ static void test_valid_zero_len_bad_term(void) {
     CHECK("zv_valid zero bad", !zv_valid(v));
 }
 
+/*
+ * Copying into a sufficiently large destination should succeed and preserve
+ * termination.  Copying to a smaller buffer should truncate and report zero
+ * bytes copied.
+ */
 static void test_copy(void) {
     VARCHAR(src,6); VARCHAR(dst,6); VARCHAR(small,3);
-    strcpy(src.arr, "abc"); src.len = 3;
+    strcpy(src.arr, "abc");
+    src.len = 3;
     int n = zv_copy(dst, src);
     CHECK("zv_copy len", n == 3 && dst.len == 3 && strcmp(dst.arr, "abc") == 0);
     n = zv_copy(small, src);
     CHECK("zv_copy fail", n == 0 && small.len == 2 && small.arr[2] == '\0');
 }
 
+/* Copy that exactly fills the destination including the terminator. */
 static void test_copy_exact(void) {
     VARCHAR(src,4); VARCHAR(dst,4);
-    strcpy(src.arr, "abc"); src.len = 3;
+    strcpy(src.arr, "abc");
+    src.len = 3;
     int n = zv_copy(dst, src);
     CHECK("zv_copy exact", n == 3 && dst.len == 3 && strcmp(dst.arr, "abc") == 0);
 }
 
+/* Empty source results in empty destination with terminator preserved. */
 static void test_copy_empty(void) {
     VARCHAR(src,4); VARCHAR(dst,4);
-    src.arr[0] = '\0'; src.len = 0;
+    src.arr[0] = '\0';
+    src.len = 0;
     int n = zv_copy(dst, src);
     CHECK("zv_copy empty", n == 0 && dst.len == 0 && dst.arr[0] == '\0');
 }
 
+/* Copying onto itself should leave the contents unchanged. */
 static void test_copy_self(void) {
     VARCHAR(v,5);
     strcpy(v.arr, "abc");
@@ -98,45 +133,63 @@ static void test_copy_self(void) {
     CHECK("zv_copy self", n == 3 && v.len == 3 && strcmp(v.arr, "abc") == 0);
 }
 
+/* Ensure very large strings are copied correctly and remain terminated. */
 static void test_large_copy(void) {
     enum { N = 4096 };
     VARCHAR(src, N); VARCHAR(dst, N);
-    memset(src.arr, 'a', N-1); src.arr[N-1] = '\0'; src.len = N-1;
+    memset(src.arr, 'a', N-1); src.arr[N-1] = '\0';
+    src.len = N-1;
     int n = zv_copy(dst, src);
     CHECK("zv_copy large", n == N-1 && dst.len == N-1 && memcmp(dst.arr, src.arr, N-1) == 0 && dst.arr[N-1] == '\0');
 }
 
+/* Destination size of one cannot hold any characters. */
 static void test_copy_dest_size_one(void) {
     VARCHAR(src,2); VARCHAR(dst,1);
-    strcpy(src.arr,"a"); src.len=1;
+    strcpy(src.arr,"a");
+    src.len=1;
     int n = zv_copy(dst, src);
     CHECK("zv_copy tiny", n == 0 && dst.len == 0);
 }
 
+/* Verify trimming functions while maintaining termination. */
 static void test_trim(void) {
     VARCHAR(v1,10); VARCHAR(v2,10); VARCHAR(v3,10);
-    strcpy(v1.arr, "  hi"); v1.len = 4; zv_ltrim(v1);
+    strcpy(v1.arr, "  hi");
+    v1.len = 4;
+    zv_ltrim(v1);
     CHECK("zv_ltrim", v1.len == 2 && strcmp(v1.arr, "hi") == 0);
 
-    strcpy(v2.arr, "hi  "); v2.len = 4; zv_rtrim(v2);
+    strcpy(v2.arr, "hi  ");
+    v2.len = 4;
+    zv_rtrim(v2);
     CHECK("zv_rtrim", v2.len == 2 && strcmp(v2.arr, "hi") == 0);
 
-    strcpy(v3.arr, "  hi  "); v3.len = 6; zv_trim(v3);
+    strcpy(v3.arr, "  hi  ");
+    v3.len = 6;
+    zv_trim(v3);
     CHECK("zv_trim", v3.len == 2 && strcmp(v3.arr, "hi") == 0);
 }
 
+/* Trimming an already trimmed string should do nothing. */
 static void test_trim_noop(void) {
     VARCHAR(v,5);
-    strcpy(v.arr, "hi"); v.len = 2; zv_trim(v);
+    strcpy(v.arr, "hi");
+    v.len = 2;
+    zv_trim(v);
     CHECK("zv_trim no-op", v.len == 2 && strcmp(v.arr, "hi") == 0);
 }
 
+/* When the string only contains spaces trimming should yield empty string. */
 static void test_trim_all_spaces(void) {
     VARCHAR(v,5);
-    strcpy(v.arr, "   "); v.len = 3; zv_trim(v);
+    strcpy(v.arr, "   ");
+    v.len = 3;
+    zv_trim(v);
     CHECK("zv_trim all", v.len == 0 && v.arr[0] == '\0');
 }
 
+/* All trim functions should accept an already empty string. */
 static void test_trim_empty(void) {
     VARCHAR(v,5);
     v.arr[0] = '\0';
@@ -149,22 +202,31 @@ static void test_trim_empty(void) {
     CHECK("zv_trim empty", v.len == 0 && v.arr[0] == '\0');
 }
 
+/* Trimming should also strip tabs and newlines from the edges. */
 static void test_trim_tabs_newlines(void) {
     VARCHAR(v1, 10); VARCHAR(v2, 10);
-    strcpy(v1.arr, "\tfoo\n"); v1.len = 5; zv_ltrim(v1);
+    strcpy(v1.arr, "\tfoo\n");
+    v1.len = 5;
+    zv_ltrim(v1);
     CHECK("zv_ltrim misc", v1.len == 4 && strcmp(v1.arr, "foo\n") == 0);
-    strcpy(v2.arr, "foo\t\n"); v2.len = 5; zv_rtrim(v2);
+    strcpy(v2.arr, "foo\t\n");
+    v2.len = 5;
+    zv_rtrim(v2);
     CHECK("zv_rtrim misc", v2.len == 3 && strcmp(v2.arr, "foo") == 0);
 }
 
+/* Normal case conversion with preservation of terminator. */
 static void test_case(void) {
     VARCHAR(v,4);
-    strcpy(v.arr, "aB3"); v.len = 3; zv_upper(v);
+    strcpy(v.arr, "aB3");
+    v.len = 3;
+    zv_upper(v);
     CHECK("zv_upper", strcmp(v.arr, "AB3") == 0 && v.arr[3] == '\0');
     zv_lower(v);
     CHECK("zv_lower", strcmp(v.arr, "ab3") == 0 && v.arr[3] == '\0');
 }
 
+/* Upper/lower should not modify an empty string. */
 static void test_case_empty(void) {
     VARCHAR(v,1);
     v.arr[0] = '\0';
@@ -175,9 +237,11 @@ static void test_case_empty(void) {
     CHECK("zv_lower empty", v.len == 0 && v.arr[0] == '\0');
 }
 
+/* Non alphabetic characters should remain unaffected by case conversion. */
 static void test_upper_lower_nonalpha(void) {
     VARCHAR(v,5);
-    strcpy(v.arr, "a1!B"); v.len=4;
+    strcpy(v.arr, "a1!B");
+    v.len=4;
     zv_upper(v);
     CHECK("zv_upper nonalpha", strcmp(v.arr,"A1!B") == 0);
     zv_lower(v);
