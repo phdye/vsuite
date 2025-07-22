@@ -100,10 +100,10 @@ static void test_zv_capacity(void) {
  * string.
  */
 static void test_zero_term(void) {
-    VARCHAR(v1, 4); memcpy(v1.arr, "abcx", 4); v1.len = 3; zv_zero_term(v1);
+    VARCHAR(v1, 4); memcpy(v1.arr, "abcx", 4); v1.len = 3; zv_zero_terminate(v1);
     CHECK("zv_zero_term keep", v1.len == 3 && v1.arr[3] == '\0');
 
-    VARCHAR(v2, 4); memcpy(v2.arr, "abcd", 4); v2.len = 4; zv_zero_term(v2);
+    VARCHAR(v2, 4); memcpy(v2.arr, "abcd", 4); v2.len = 4; zv_zero_terminate(v2);
     CHECK("zv_zero_term cut", v2.len == 3 && v2.arr[3] == '\0');
 }
 
@@ -112,7 +112,7 @@ static void test_zero_term_idempotent(void) {
     VARCHAR(v,4);
     strcpy(v.arr, "abc");
     v.len = 3;
-    zv_zero_term(v);
+    zv_zero_terminate(v);
     CHECK("zv_zero_term idempotent", v.len == 3 && strcmp(v.arr, "abc") == 0);
 }
 
@@ -121,7 +121,7 @@ static void test_zero_term_empty(void) {
     VARCHAR(v,4);
     v.len = 0;
     v.arr[0] = 'x';
-    zv_zero_term(v);
+    zv_zero_terminate(v);
     CHECK("zv_zero_term empty", v.len == 0 && v.arr[0] == '\0');
 }
 
@@ -132,7 +132,7 @@ static void test_zero_term_size_one(void) {
     VARCHAR(v,1);
     v.arr[0] = 'a';
     v.len = 1;
-    zv_zero_term(v);
+    zv_zero_terminate(v);
     CHECK("zv_zero_term size1", v.len == 0 && v.arr[0] == '\0');
 }
 

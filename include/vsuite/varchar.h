@@ -4,6 +4,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <stddef.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 /**
  * VARCHAR() - Declare a fixed-size Oracle style VARCHAR structure.
@@ -152,9 +154,44 @@ typedef VARCHAR(varchar_t, 1);
 /*
  * v_lower() - In-place ASCII lowercase conversion.
  */
+
 #define v_lower(v) do {                                  \
     for (size_t i = 0; i < (v).len; i++)                 \
         V_BUF(v)[i] = tolower((unsigned char)V_BUF(v)[i]); \
 } while (0)
+
+/*
+ * v_sprintf() - Print formatted data into a VARCHAR.
+ * @v:   Destination VARCHAR variable.
+ * @fmt: ``printf`` style format string.
+ * @...: Arguments consumed according to @fmt.
+ *
+ * The macro formats into a temporary buffer sized one byte larger than the
+ * destination so that ``vsnprintf`` can NUL terminate the result.  When the
+ * formatted string fits, the bytes are copied into ``v`` and the number of
+ * characters written is returned.  On overflow or formatting error ``v.len`` is
+ * cleared to zero and ``0`` is returned.
+ */
+static inline int v_sprintf_fcn(char *dst_buf, unsigned short capacity,
+                                unsigned short *dst_len, const char *fmt, ...)
+{
+    va_list ap;
+    char tmp[capacity + 1];
+    va_start(ap, fmt);
+    int n = vsnprintf(tmp, sizeof tmp, fmt, ap);
+    va_end(ap);
+
+    if (n >= 0 && (unsigned)n <= capacity) {
+        memcpy(dst_buf, tmp, (size_t)n);
+        *dst_len = (unsigned short)n;
+        return n;
+    }
+
+    *dst_len = 0;
+    return 0;
+}
+
+#define v_sprintf(v, fmt, ...) \
+    v_sprintf_fcn(V_BUF(v), V_SIZE(v), &(v).len, fmt, ##__VA_ARGS__)
 
 #endif /* VARCHAR_MACROS_V_H */
