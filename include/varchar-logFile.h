@@ -5,7 +5,11 @@
 
 #include <vsuite.h>
 
-/* Optional log destination used by the debugging wrappers. */
+/* Required log destination used by the debugging wrappers.
+ * It might be stderr or an actual file.  It should be unbuffered to ensure
+ * that messages are written immediately to preclude loss of information
+ * in case of a crash.
+ */
 extern FILE *logFile;
 
 /*
@@ -66,9 +70,10 @@ extern FILE *logFile;
         if (nul == NULL) {                      \
             fprintf(logFile, "Line %d : VARCHAR_ZSETLEN(%s) : No NUL byte found within %u sizeof(.arr) bytes : value '%s'\n", \
                     __LINE__, #v, siz, (v).arr); \
+            nul = (v).arr + siz - 1; /* point to the last byte */ \
         }                                       \
         (v).len = (unsigned short)((unsigned long)nul - (unsigned long)(v).arr); \
-        (v).arr[siz-1] = '\0';                  \
+        (v).arr[(v).len] = '\0';                  \
     }
 
 /*
