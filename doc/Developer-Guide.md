@@ -17,6 +17,7 @@ This guide summarizes the design of VSuite and explains the naming conventions f
       - [`fixed.h`](#fixedh)
     - VARCHAR <-> Dynamic:
       - [`pstr.h`](#pstrh)
+  - [Logging helpers (`varchar-logFile.h`)](#logging-helpers-varchar-logfileh)
 - [Further Reading](#further-reading)
 
 ## Design Overview
@@ -240,6 +241,17 @@ strcpy(z.arr, "abc");
 z.len = 3;
 zv_zero_term(z);               /* safe even when full */
 ```
+
+### Logging helpers (`varchar-logFile.h`)
+
+These optional wrappers mirror existing macros but emit diagnostic messages to
+``logFile`` when operations encounter invalid lengths or potential overflows.
+
+- `VARCHAR_SETLENZ(v)` – terminate ``v`` while warning about length errors.
+- `FIND_FIRST_NUL_BYTE(arr, n)` – pointer to first ``'\0'`` or ``NULL``.
+- `VARCHAR_ZSETLEN(v)` – set ``v.len`` to the offset of the first terminator.
+- `VARCHAR_v_copy(dst, src)` – check a ``v_copy`` call for overflow.
+- `VARCHAR_sprintf(v, fmt, ...)` – verify formatting fits the buffer.
 
 ## Further Reading
 
