@@ -65,10 +65,10 @@ extern FILE *logFile;
  */
 #define VARCHAR_ZSETLEN(v)                     \
     {                                          \
-        unsigned siz = sizeof((v).arr);         \
+        unsigned siz = sizeof((v).arr);        \
         char *nul = FIND_FIRST_NUL_BYTE((v).arr, siz); \
-        if (nul == NULL) {                      \
-            fprintf(logFile, "Line %d : VARCHAR_ZSETLEN(%s) : No NUL byte found within %u sizeof(.arr) bytes : value '%s'\n", \
+        if (nul == NULL) {                     \
+            fprintf(logFile, "Line %d : VARCHAR_ZSETLEN(%s) : No NUL byte found within %u sizeof(.arr) bytes : value '%s'\n",\
                     __LINE__, #v, siz, (v).arr); \
             nul = (v).arr + siz - 1; /* point to the last byte */ \
         }                                       \
