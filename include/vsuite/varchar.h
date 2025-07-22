@@ -55,6 +55,25 @@ typedef VARCHAR(varchar_t, 1);
     ((N) <= V_SIZE(v))
 
 /*
+ * v_unused_capacity() - Return number of unused bytes
+ * @v:  VARCHAR variable being queried.
+ *
+ * Returns the number of remaining bytes available
+ */
+#define v_unused_capacity(v) \
+    ((v.len) > V_SIZE(v) ? 0 : (V_SIZE(v) - (v).len))
+
+/*
+ * v_has_unused_capacity() - Test if @v can hold @N additional bytes.
+ * @v:  VARCHAR variable being queried.
+ * @N:  Number of characters to check for.
+ *
+ * Returns true when the destination buffer has at least @N bytes of unused space.
+ */
+#define v_has_unused_capacity(v,N) \
+    ((N) <= v_unused_capacity(v))
+
+/*
  * v_init() - Reset a VARCHAR to an empty state.
  * @v: VARCHAR variable to modify.
  */
