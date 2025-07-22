@@ -18,8 +18,8 @@ The following conversions are currently supported:
 ``vp_copy``
     ``strcpy(FOO.arr, "literal");`` becomes ``vp_copy(FOO, "literal");``.
 
-``v_sprintf``
-    ``sprintf(FOO.arr, fmt, ...);`` becomes ``v_sprintf(FOO, fmt, ...);``.
+``VARCHAR_sprintf``
+    ``sprintf(FOO.arr, fmt, ...);`` becomes ``VARCHAR_sprintf(FOO, fmt, ...);``.
 
 Usage:
     better-varchar.py [options] <input-pc-file> <output-pc-file>
@@ -141,7 +141,7 @@ def replace_vp_copy(text: str) -> str:
 
 
 def replace_v_sprintf(text: str) -> str:
-    """Turn ``sprintf`` calls operating on ``VARCHAR`` buffers into ``v_sprintf``.
+    """Turn ``sprintf`` calls operating on ``VARCHAR`` buffers into ``VARCHAR_sprintf``.
 
     The function captures everything after the destination buffer so that
     arbitrary format strings and argument lists are preserved.
@@ -152,7 +152,7 @@ def replace_v_sprintf(text: str) -> str:
         re.MULTILINE,
     )
     return pattern.sub(
-        lambda m: f"{m.group('indent')}v_sprintf({m.group('foo')}, {m.group('args')});",
+        lambda m: f"{m.group('indent')}VARCHAR_sprintf({m.group('foo')}, {m.group('args')});",
         text,
     )
 
