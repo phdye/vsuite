@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """Simple source-to-source translator for basic ``VARCHAR`` operations.
 
 This helper scans a C source file and replaces a few verbose patterns with
@@ -79,7 +81,7 @@ def transform(text):
 # followed by member or array access.  It intentionally accepts characters
 # such as ``->`` and ``[]`` so that structures like ``foo->bar[0]`` are
 # recognised when used with the macros.
-_VAR = r"[A-Za-z0-9_.->\[\]]+"
+_VAR = r"[-A-Za-z0-9_.->\[\]]+"
 
 
 def replace_setlenz(text):
