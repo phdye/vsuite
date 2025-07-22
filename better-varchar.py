@@ -71,7 +71,8 @@ def transform(text):
     """
 
     text = replace_setlenz(text)
-    text = replace_v_copy(text)
+    text = replace_v_copy_1(text)
+    text = replace_v_copy_2(text)
     text = replace_vp_copy(text)
     text = replace_v_sprintf(text)
     return text
@@ -103,7 +104,7 @@ def replace_setlenz(text):
     )
 
 
-def replace_v_copy(text):
+def replace_v_copy_1(text):
     """Collapse ``strcpy`` + length assignment into ``v_copy``.
 
     This looks for a call to ``strcpy`` where both arguments are the
@@ -114,13 +115,31 @@ def replace_v_copy(text):
     """
 
     pattern = re.compile(
-        r"(?P<indent>^[ \t]*)strcpy\(\s*(?:\(char\*\))?\s*(?P<foo>" + _VAR +
-        r")\.arr,\s*(?:\(char\*\))?\s*(?P<bar>" + _VAR +
-        r")\.arr\s*\);\s*(?:\n\s*)?(?P=foo)\.arr\[(?P=bar)\.len\]\s*=\s*'\0';",
+        r"(?P<indent>^[ \t]*)strcpy\(\s*(?:\(char\*\))?\s*(?P<dst>" + _VAR +
+        r")\.arr,\s*(?:\(char\*\))?\s*(?P<src>" + _VAR +
+        r")\.arr\s*\);\s*(?:\n\s*)?(?P=dst)\.arr\[(?P=src)\.len\]\s*=\s*'\0';",
         re.MULTILINE,
     )
     return pattern.sub(
-        lambda m: "%sv_copy(%s, %s);" % (m.group('indent'), m.group('foo'), m.group('bar')),
+        lambda m: "%sv_copy(%s, %s);" % (m.group('indent'), m.group('dst'), m.group('src')),
+        text,
+    )
+
+
+def replace_v_copy_2(text):
+    """Collapse ``strcpy`` of .arr to .arr into ``v_copy``.
+
+    This looks for a call to ``strcpy`` where both arguments are the
+    ``.arr`` members of ``VARCHAR`` variables.  When such a pattern is
+    found it is replaced with the single ``v_copy(dst, src);`` macro call.
+    """
+    pattern = re.compile(
+        r'(?P<indent>^[ \t]*)strcpy\(\s*(?:\(char\*\))?\s*(?P<dst>' + _VAR +
+        r')\.arr,\s*(?:\(char\*\))?\s*(?P<src>' + _VAR + r')\.arr\s*\);',
+        re.MULTILINE,
+    )
+    return pattern.sub(
+        lambda m: "%sv_copy(%s, %s);" % (m.group('indent'), m.group('dst'), m.group('src')),
         text,
     )
 
