@@ -183,7 +183,7 @@ static inline int v_sprintf_fcn(char *dst_buf, unsigned short capacity,
 
     if (n >= 0 && (unsigned)n <= capacity) {
         memcpy(dst_buf, tmp, (size_t)n);
-        *dst_len = (unsigned short)n;
+        *dst_len = (unsigned short) n - 1; // VARCHAR length does not include zero-byte terminator
         return n;
     }
 
