@@ -18,10 +18,13 @@ test-zvarchar:   test-zvarchar.c   ${IV}/varchar.h  ${IV}/zvarchar.h
 test-fixed:      test-fixed.c      ${IV}/varchar.h  ${IV}/fixed.h
 test-pstr:       test-pstr.c       ${IV}/varchar.h  ${IV}/pstr.h
 
+PYTEST = python3 -m unittest -v test_better_varchar.py
+
 test: all
-	@ for target in $(PROGRAMS) ; do \
-            ( set -x && ./$${target} ) ; \
-        done
+	@for target in $(PROGRAMS) ; do \
+	    ( set -x && ./$${target} ) ; \
+	done
+	@$(PYTEST)
 
 vtest: all
 	@ for target in $(PROGRAMS) ; do \
