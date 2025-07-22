@@ -35,7 +35,7 @@
 #define zvf_copy(vdst, dsrc)                                                  \
     do {                                                                      \
         vf_copy(vdst, dsrc);                                                  \
-        zv_zero_term(vdst);                                                   \
+        zv_zero_terminate(vdst);                                                   \
     } while (0)
 
 /*

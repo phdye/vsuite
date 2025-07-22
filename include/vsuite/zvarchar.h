@@ -27,10 +27,10 @@
     (((v).len < V_SIZE(v)) && (V_BUF(v)[(v).len] == '\0'))
 
 /*
- * zv_zero_term() - Ensure a VARCHAR is properly NUL terminated.  If the length
- * exceeds the buffer size it is truncated so a terminator can be stored.
+ * zv_zero_terminate() - Ensure a VARCHAR is properly NUL terminated.  If the length
+ * exceeds or equals the buffer size, the string is truncated, then terminated.
  */
-#define zv_zero_term(v)                          \
+#define zv_zero_terminate(v)                     \
     do {                                         \
         if ((v).len >= V_SIZE(v))                \
             (v).len = V_SIZE(v) - 1;             \
@@ -73,17 +73,17 @@
 /*
  * zv_ltrim() - Call v_ltrim() and then re-apply zero termination.
  */
-#define zv_ltrim(v) do { v_ltrim(v); zv_zero_term(v); } while (0)
+#define zv_ltrim(v) do { v_ltrim(v); zv_zero_terminate(v); } while (0)
 
 /*
  * zv_rtrim() - Call v_rtrim() and then re-apply zero termination.
  */
-#define zv_rtrim(v) do { v_rtrim(v); zv_zero_term(v); } while (0)
+#define zv_rtrim(v) do { v_rtrim(v); zv_zero_terminate(v); } while (0)
 
 /*
  * zv_trim() - Trim both ends and keep the terminator intact.
  */
-#define zv_trim(v)  do { v_trim(v); zv_zero_term(v); } while (0)
+#define zv_trim(v)  do { v_trim(v); zv_zero_terminate(v); } while (0)
 
 /*
  * zv_upper() - Uppercase conversion preserving the terminator.
