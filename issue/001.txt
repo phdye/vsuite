@@ -1,0 +1,12 @@
+FOO.arr[FOO.len] = '\0';
+=> VARCHAR_SETLENZ(FOO);
+
+strcpy([(char*)]FOO.arr,\s*[(char*)]BAR.arr);
+FOO.arr[BAR.len] = '\0';
+=> v_copy(FOO, BAR);
+
+strcpy([(char*)]FOO.arr,\s*".*");
+=> vp_copy(FOO, ".*")
+
+sprintf(FOO.arr,\s*.*);
+=> v_sprintf(FOO, ...);
