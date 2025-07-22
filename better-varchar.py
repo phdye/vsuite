@@ -75,6 +75,7 @@ def transform(text):
     text = replace_v_copy_2(text)
     text = replace_vp_copy(text)
     text = replace_v_sprintf(text)
+    text = replace_zsetlen(text)
     return text
 
 
@@ -177,6 +178,25 @@ def replace_v_sprintf(text):
     )
     return pattern.sub(
         lambda m: "%sVARCHAR_sprintf(%s, %s);" % (m.group('indent'), m.group('foo'), m.group('args')),
+        text,
+    )
+
+
+def replace_zsetlen(text):
+    """Convert strlen-based length assignments to ``VARCHAR_ZSETLEN``.
+
+    This handles statements like ``VAR.len = strlen((char*) VAR.arr);`` and
+    emits ``VARCHAR_ZSETLEN(VAR);``.  The source variable used inside
+    ``strlen`` is ignored so the pattern applies even when the left-hand side
+    and argument differ.
+    """
+
+    pattern = re.compile(
+        r"(?P<indent>^[ \t]*)(?P<dst>" + _VAR + r")\.len\s*=\s*strlen\(\s*(?:\(char\*\))?\s*" + _VAR + r"\.arr\s*\)\s*;",
+        re.MULTILINE,
+    )
+    return pattern.sub(
+        lambda m: "%sVARCHAR_ZSETLEN(%s);" % (m.group('indent'), m.group('dst')),
         text,
     )
 
