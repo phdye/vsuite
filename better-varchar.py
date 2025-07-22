@@ -29,11 +29,9 @@ Options:
     --version     Show program version and exit.
 """
 
-from __future__ import annotations
-
 import argparse
 import re
-from pathlib import Path
+import io
 
 # Application version string.  Bumped whenever the behaviour or command
 # line interface changes so users can query the script via ``--version``.
@@ -93,11 +91,12 @@ def replace_setlenz(text: str) -> str:
     """
 
     pattern = re.compile(
-        rf"(?P<indent>^\s*)(?P<var>{_VAR})\.arr\[(?P=var)\.len\]\s*=\s*'\\0';",
+        r"(?P<indent>^\s*)(?P<var>" + _VAR +
+        r")\.arr\[(?P=var)\.len\]\s*=\s*'\0';",
         re.MULTILINE,
     )
     return pattern.sub(
-        lambda m: f"{m.group('indent')}VARCHAR_SETLENZ({m.group('var')});",
+        lambda m: "%sVARCHAR_SETLENZ(%s);" % (m.group('indent'), m.group('var')),
         text,
     )
 
@@ -113,11 +112,13 @@ def replace_v_copy(text: str) -> str:
     """
 
     pattern = re.compile(
-        rf"(?P<indent>^[ \t]*)strcpy\(\s*(?:\(char\*\))?\s*(?P<foo>{_VAR})\.arr,\s*(?:\(char\*\))?\s*(?P<bar>{_VAR})\.arr\s*\);\s*(?:\n\s*)?(?P=foo)\.arr\[(?P=bar)\.len\]\s*=\s*'\\0';",
+        r"(?P<indent>^[ \t]*)strcpy\(\s*(?:\(char\*\))?\s*(?P<foo>" + _VAR +
+        r")\.arr,\s*(?:\(char\*\))?\s*(?P<bar>" + _VAR +
+        r")\.arr\s*\);\s*(?:\n\s*)?(?P=foo)\.arr\[(?P=bar)\.len\]\s*=\s*'\0';",
         re.MULTILINE,
     )
     return pattern.sub(
-        lambda m: f"{m.group('indent')}v_copy({m.group('foo')}, {m.group('bar')});",
+        lambda m: "%sv_copy(%s, %s);" % (m.group('indent'), m.group('foo'), m.group('bar')),
         text,
     )
 
@@ -131,11 +132,12 @@ def replace_vp_copy(text: str) -> str:
     """
 
     pattern = re.compile(
-        rf"(?P<indent>^[ \t]*)strcpy\(\s*(?:\(char\*\))?\s*(?P<foo>{_VAR})\.arr,\s*\"(?P<lit>[^\"]*)\"\s*\);",
+        r"(?P<indent>^[ \t]*)strcpy\(\s*(?:\(char\*\))?\s*(?P<foo>" + _VAR +
+        r")\.arr,\s*\"(?P<lit>[^\"]*)\"\s*\);",
         re.MULTILINE,
     )
     return pattern.sub(
-        lambda m: f"{m.group('indent')}vp_copy({m.group('foo')}, \"{m.group('lit')}\");",
+        lambda m: "%svp_copy(%s, \"%s\");" % (m.group('indent'), m.group('foo'), m.group('lit')),
         text,
     )
 
@@ -148,11 +150,12 @@ def replace_v_sprintf(text: str) -> str:
     """
 
     pattern = re.compile(
-        rf"(?P<indent>^[ \t]*)sprintf\(\s*(?P<foo>{_VAR})\.arr,\s*(?P<args>[^;]*?)\)\s*;",
+        r"(?P<indent>^[ \t]*)sprintf\(\s*(?P<foo>" + _VAR +
+        r")\.arr,\s*(?P<args>[^;]*?)\)\s*;",
         re.MULTILINE,
     )
     return pattern.sub(
-        lambda m: f"{m.group('indent')}VARCHAR_sprintf({m.group('foo')}, {m.group('args')});",
+        lambda m: "%sVARCHAR_sprintf(%s, %s);" % (m.group('indent'), m.group('foo'), m.group('args')),
         text,
     )
 
@@ -161,9 +164,11 @@ def main(argv=None):
     """Entry point used by the ``__main__`` block and tests."""
 
     args = parse_args(argv)
-    data = Path(args.input_pc_file).read_text()
+    with io.open(args.input_pc_file, 'r', encoding='utf-8') as fh:
+        data = fh.read()
     result = transform(data)
-    Path(args.output_pc_file).write_text(result)
+    with io.open(args.output_pc_file, 'w', encoding='utf-8') as fh:
+        fh.write(result)
 
 
 if __name__ == "__main__":
