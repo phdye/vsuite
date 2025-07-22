@@ -59,7 +59,7 @@ def parse_args(argv=None):
     return parser.parse_args(argv)
 
 
-def transform(text: str) -> str:
+def transform(text):
     """Run all source transformations on ``text``.
 
     Each helper performs a specialised regex substitution.  The
@@ -82,7 +82,7 @@ def transform(text: str) -> str:
 _VAR = r"[A-Za-z0-9_.->\[\]]+"
 
 
-def replace_setlenz(text: str) -> str:
+def replace_setlenz(text):
     """Convert NUL termination assignments to ``VARCHAR_SETLENZ``.
 
     Matches lines of the form ``VAR.arr[VAR.len] = '\0';``.  The variable
@@ -101,7 +101,7 @@ def replace_setlenz(text: str) -> str:
     )
 
 
-def replace_v_copy(text: str) -> str:
+def replace_v_copy(text):
     """Collapse ``strcpy`` + length assignment into ``v_copy``.
 
     This looks for a call to ``strcpy`` where both arguments are the
@@ -123,7 +123,7 @@ def replace_v_copy(text: str) -> str:
     )
 
 
-def replace_vp_copy(text: str) -> str:
+def replace_vp_copy(text):
     """Rewrite ``strcpy`` from a string literal into ``vp_copy``.
 
     This pattern specifically handles copying a quoted literal into a
@@ -142,7 +142,7 @@ def replace_vp_copy(text: str) -> str:
     )
 
 
-def replace_v_sprintf(text: str) -> str:
+def replace_v_sprintf(text):
     """Turn ``sprintf`` calls operating on ``VARCHAR`` buffers into ``VARCHAR_sprintf``.
 
     The function captures everything after the destination buffer so that
