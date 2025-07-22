@@ -10,3 +10,24 @@ strcpy(\((char*)\)FOO.arr,\s*"\([^"]*"\));
 
 sprintf(FOO.arr,\s*\(.*\));
 => v_sprintf(FOO, \1);
+
+strcpy((char*)ptr->tail->amount.arr, (char*)amount.arr);
+
+strcpy((char*)ptr->tail->trans_type.arr, trans_type.arr);
+
+strcpy((char*)ptr->jv_type.arr, (char*)jv_type.arr);
+
+strcpy((char*)ptr->tail->amount.arr, (char*)amount.arr);
+
+strcpy((char*)ptr->tail->gl_post_desc.arr, (char*)gl_post_desc.arr);
+strcpy((char*)ptr->tail->product.arr, (char*)product.arr);
+strcpy((char*)ptr->tail->amount.arr, (char*)amount.arr);
+
+strcpy((char*)ptr->tail->trans_type.arr, trans_type.arr);
+
+ptr->tail->entity.len = strlen((char*) entity.arr);
+
+strcpy((char*)tail->tail->amount.arr, (char*)amount_B_1.arr);
+strcpy((char*)tail->tail->product.arr, (char*)product_B_1.arr);
+
+strcpy(temp_product.arr, product_B_1.arr);
