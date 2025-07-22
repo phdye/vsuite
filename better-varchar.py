@@ -27,8 +27,13 @@ Usage:
     better-varchar.py [options] <input-pc-file> <output-pc-file>
 
 Options:
-    -h --help     Show this help message and exit.
-    --version     Show program version and exit.
+    -h --help          Show this help message and exit.
+    --version          Show program version and exit.
+    --lines START:END  Only transform a specific line range (1-indexed).
+    --fraction A:B     Transform only a fraction of the file.  ``A`` and
+                       ``B`` are percentages (``50%``) or decimals (``0.5``).
+    --function NAME    Restrict transformations to functions with ``NAME``.
+                       May be repeated.
 """
 
 import argparse
@@ -58,6 +63,25 @@ def parse_args(argv=None):
     parser.add_argument("input_pc_file")
     parser.add_argument("output_pc_file")
     parser.add_argument("--version", action="version", version=VERSION)
+    parser.add_argument(
+        "--lines",
+        metavar="START:END",
+        help="Only transform the given line range (1-indexed)",
+    )
+    parser.add_argument(
+        "--fraction",
+        metavar="A:B",
+        help=(
+            "Only transform a fraction of the file. Arguments are percentages"
+            " (50%) or decimals (0.5)."
+        ),
+    )
+    parser.add_argument(
+        "--function",
+        action="append",
+        metavar="NAME",
+        help="Restrict transformations to the given function name. May repeat",
+    )
     return parser.parse_args(argv)
 
 
@@ -77,6 +101,62 @@ def transform(text):
     text = replace_v_sprintf(text)
     text = replace_zsetlen(text)
     return text
+
+
+def _parse_line_range(spec, total):
+    """Return (start, end) tuple from a ``START:END`` specification."""
+
+    start_s, end_s = spec.split(":", 1)
+    start = int(start_s) - 1 if start_s else 0
+    end = int(end_s) if end_s else total
+    if start < 0:
+        start = 0
+    if end > total:
+        end = total
+    return start, end
+
+
+def _parse_fraction(spec, total):
+    """Translate a fractional range into (start, end) line numbers."""
+
+    def as_float(part):
+        if part.endswith("%"):
+            return float(part[:-1]) / 100.0
+        return float(part)
+
+    start_s, end_s = spec.split(":", 1)
+    start = as_float(start_s) if start_s else 0.0
+    end = as_float(end_s) if end_s else 1.0
+    start = max(0, min(1, start))
+    end = max(0, min(1, end))
+    return int(total * start), int(total * end)
+
+
+def _function_ranges(lines, names):
+    """Return a list of (start, end) ranges for the given function names."""
+
+    if not names:
+        return []
+    pattern = re.compile(r"^.*\b(" + "|".join(map(re.escape, names)) + r")\s*\(")
+    ranges = []
+    i = 0
+    while i < len(lines):
+        if pattern.search(lines[i]):
+            start = i
+            brace = 0
+            while i < len(lines):
+                brace += lines[i].count("{") - lines[i].count("}")
+                if brace > 0:
+                    break
+                i += 1
+            i += 1
+            while i < len(lines) and brace > 0:
+                brace += lines[i].count("{") - lines[i].count("}")
+                i += 1
+            ranges.append((start, i))
+        else:
+            i += 1
+    return ranges
 
 
 # Regular expression fragment that loosely matches a C identifier possibly
@@ -205,10 +285,38 @@ def main(argv=None):
     """Entry point used by the ``__main__`` block and tests."""
 
     args = parse_args(argv)
-    with io.open(args.input_pc_file, 'r', encoding='utf-8') as fh:
+    with io.open(args.input_pc_file, "r", encoding="utf-8") as fh:
         data = fh.read()
-    result = transform(data)
-    with io.open(args.output_pc_file, 'w', encoding='utf-8') as fh:
+
+    lines = data.splitlines(True)
+    total = len(lines)
+
+    start, end = 0, total
+    if args.lines:
+        start, end = _parse_line_range(args.lines, total)
+    if args.fraction:
+        fs, fe = _parse_fraction(args.fraction, total)
+        start = max(start, fs)
+        end = min(end, fe)
+
+    segments = [(start, end)]
+    func_ranges = _function_ranges(lines, args.function) if args.function else []
+    if func_ranges:
+        segments = []
+        for fr in func_ranges:
+            s = max(start, fr[0])
+            e = min(end, fr[1])
+            if s < e:
+                segments.append((s, e))
+    result_lines = lines[:]
+    for s, e in segments:
+        chunk = "".join(lines[s:e])
+        chunk = transform(chunk)
+        result_lines[s:e] = chunk.splitlines(True)
+
+    result = "".join(result_lines)
+
+    with io.open(args.output_pc_file, "w", encoding="utf-8") as fh:
         fh.write(result)
 
 
