@@ -1,0 +1,36 @@
+$  ~/my-repos/vsuite/better-varchar.py --help
+Traceback (most recent call last):
+  File "/home/phdye/my-repos/vsuite/better-varchar.py", line 324, in <module>
+    main()
+  File "/home/phdye/my-repos/vsuite/better-varchar.py", line 287, in main
+    args = parse_args(argv)
+  File "/home/phdye/my-repos/vsuite/better-varchar.py", line 85, in parse_args
+    return parser.parse_args(argv)
+  File "/usr/lib/python3.2/argparse.py", line 1697, in parse_args
+    args, argv = self.parse_known_args(args, namespace)
+  File "/usr/lib/python3.2/argparse.py", line 1729, in parse_known_args
+    namespace, args = self._parse_known_args(args, namespace)
+  File "/usr/lib/python3.2/argparse.py", line 1935, in _parse_known_args
+    start_index = consume_optional(start_index)
+  File "/usr/lib/python3.2/argparse.py", line 1875, in consume_optional
+    take_action(action, args, option_string)
+  File "/usr/lib/python3.2/argparse.py", line 1803, in take_action
+    action(self, namespace, argument_values, option_string)
+  File "/usr/lib/python3.2/argparse.py", line 990, in __call__
+    parser.print_help()
+  File "/usr/lib/python3.2/argparse.py", line 2341, in print_help
+    self._print_message(self.format_help(), file)
+  File "/usr/lib/python3.2/argparse.py", line 2315, in format_help
+    return formatter.format_help()
+  File "/usr/lib/python3.2/argparse.py", line 275, in format_help
+    help = self._root_section.format_help()
+  File "/usr/lib/python3.2/argparse.py", line 205, in format_help
+    func(*args)
+  File "/usr/lib/python3.2/argparse.py", line 205, in format_help
+    func(*args)
+  File "/usr/lib/python3.2/argparse.py", line 511, in _format_action
+    help_text = self._expand_help(action)
+  File "/usr/lib/python3.2/argparse.py", line 597, in _expand_help
+    return self._get_help_string(action) % params
+ValueError: unsupported format character ')' (0x29) at index 69
+
