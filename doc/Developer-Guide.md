@@ -17,6 +17,7 @@ This guide summarizes the design of VSuite and explains the naming conventions f
       - [`fixed.h`](#fixedh)
     - VARCHAR <-> Dynamic:
       - [`pstr.h`](#pstrh)
+  - [Logging helpers (`varchar-logFile.h`)](#logging-helpers-varchar-logfileh)
 - [Further Reading](#further-reading)
 
 ## Design Overview
@@ -115,6 +116,8 @@ VARCHAR(buf, 32);   /* buf.len and buf.arr available */
 - `V_SIZE(v)` – capacity of `v` in bytes.
 - `V_BUF(v)` – pointer to the underlying array.
 - `v_has_capacity(v, n)` – check that `v` can hold `n` bytes.
+- `v_unused_capacity(v)` – remaining free space in `v`.
+- `v_has_unused_capacity(v, n)` – test for at least `n` additional bytes.
 - `v_init(v)` – set length to zero.
 
 ```c
@@ -150,11 +153,13 @@ v_trim(tmp);                    /* results in "hi" */
 ```
 
 - `v_upper(v)` and `v_lower(v)` – convert case in place.
+- `v_sprintf(v, fmt, ...)` – printf-style formatting into `v`.
 
 ```c
 strcpy(tmp.arr, "Abc");
 tmp.len = 3;
 v_upper(tmp);                   /* "ABC" */
+v_sprintf(tmp, "%s %d", "id", 1); /* writes "id 1" */
 ```
 
 ### Interop helpers
@@ -169,6 +174,7 @@ pv_copy(out, sizeof out, tmp);
 ```
 
 - `dv_dup(src)` – allocate a new C string containing the contents of `src`.
+- `dv_dup_fcn(buf, len)` – functional form behind `dv_dup`.
 
 ```c
 char *dup = dv_dup(tmp);
@@ -235,6 +241,17 @@ strcpy(z.arr, "abc");
 z.len = 3;
 zv_zero_term(z);               /* safe even when full */
 ```
+
+### Logging helpers (`varchar-logFile.h`)
+
+These optional wrappers mirror existing macros but emit diagnostic messages to
+``logFile`` when operations encounter invalid lengths or potential overflows.
+
+- `VARCHAR_SETLENZ(v)` – terminate ``v`` while warning about length errors.
+- `FIND_FIRST_NUL_BYTE(arr, n)` – pointer to first ``'\0'`` or ``NULL``.
+- `VARCHAR_ZSETLEN(v)` – set ``v.len`` to the offset of the first terminator.
+- `VARCHAR_v_copy(dst, src)` – check a ``v_copy`` call for overflow.
+- `VARCHAR_sprintf(v, fmt, ...)` – verify formatting fits the buffer.
 
 ## Further Reading
 

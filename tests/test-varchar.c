@@ -57,6 +57,36 @@ static void test_has_capacity(void) {
 }
 
 /*
+ * v_unused_capacity() reports the remaining space in the buffer. It should
+ * clamp to zero when the length exceeds the declared size.
+ */
+static void test_unused_capacity(void) {
+    VARCHAR(v, 5);
+    v.len = 2;
+    CHECK("v_unused_capacity", v_unused_capacity(v) == 3);
+    v.len = 5;
+    CHECK("v_unused_capacity zero", v_unused_capacity(v) == 0);
+    v.len = 6;
+    CHECK("v_unused_capacity overflow", v_unused_capacity(v) == 0);
+}
+
+/*
+ * v_has_unused_capacity() checks whether a VARCHAR can accept additional
+ * characters beyond its current length.  It must fail when full or when the
+ * length already overflows.
+ */
+static void test_has_unused_capacity(void) {
+    VARCHAR(v, 5);
+    v.len = 2;
+    CHECK("v_has_unused ok", v_has_unused_capacity(v, 3));
+    CHECK("v_has_unused none", !v_has_unused_capacity(v, 4));
+    v.len = 5;
+    CHECK("v_has_unused full", !v_has_unused_capacity(v, 1));
+    v.len = 7;
+    CHECK("v_has_unused overflow", !v_has_unused_capacity(v, 1));
+}
+
+/*
  * Basic copy from one VARCHAR to another.  First copy succeeds when the
  * destination is large enough, then a second copy to a too-small buffer
  * should fail and leave the destination empty.
@@ -302,6 +332,8 @@ int main(int argc, char **argv) {
     test_init_clear();
     test_valid();
     test_has_capacity();
+    test_unused_capacity();
+    test_has_unused_capacity();
 
     test_copy();
     test_copy_exact();
