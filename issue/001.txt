@@ -1,12 +1,12 @@
 FOO.arr[FOO.len] = '\0';
 => VARCHAR_SETLENZ(FOO);
 
-strcpy([(char*)]FOO.arr,\s*[(char*)]BAR.arr);
+strcpy(\((char*)\)?FOO.arr,\s*\((char*)\)BAR.arr);
 FOO.arr[BAR.len] = '\0';
 => v_copy(FOO, BAR);
 
-strcpy([(char*)]FOO.arr,\s*".*");
-=> vp_copy(FOO, ".*")
+strcpy(\((char*)\)FOO.arr,\s*"\([^"]*"\));
+=> vp_copy(FOO, "\1")
 
-sprintf(FOO.arr,\s*.*);
-=> v_sprintf(FOO, ...);
+sprintf(FOO.arr,\s*\(.*\));
+=> v_sprintf(FOO, \1);
