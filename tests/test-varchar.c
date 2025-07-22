@@ -246,6 +246,40 @@ static void test_mass_case(void) {
         if (v.arr[i] != 'a') { CHECK("v_mass_lower", 0); break; }
 }
 
+/* v_sprintf should format data into the destination when it fits. */
+static void test_v_sprintf_basic(void) {
+    VARCHAR(v, 16);
+    int n = v_sprintf(v, "hi %d", 42);
+    int ok = (n == 5 && v.len == 5 && memcmp(v.arr, "hi 42", 5) == 0);
+    CHECK("v_sprintf basic", ok);
+}
+
+/* Overflow during formatting clears the destination length. */
+static void test_v_sprintf_overflow(void) {
+    VARCHAR(v, 4);
+    int n = v_sprintf(v, "value %d", 100); /* longer than 4 */
+    CHECK("v_sprintf overflow", n == 0 && v.len == 0);
+}
+
+/* Exactly filling the buffer should succeed and update the length. */
+static void test_v_sprintf_exact(void) {
+    VARCHAR(v, 4);
+    int n = v_sprintf(v, "abcd");
+    CHECK("v_sprintf exact", n == 4 && v.len == 4 && memcmp(v.arr, "abcd", 4) == 0);
+}
+
+/* Large formatting operations should also work correctly. */
+static void test_v_sprintf_large(void) {
+    enum { N = 4096 };
+    char src[N + 1];
+    memset(src, 'a', N);
+    src[N] = '\0';
+    VARCHAR(v, N);
+    int n = v_sprintf(v, "%s", src);
+    int ok = (n == N && v.len == N && memcmp(v.arr, src, N) == 0);
+    CHECK("v_sprintf large", ok);
+}
+
 /*
  * Test helper macros V_SIZE(), V_BUF() and varchar_buf_t.  V_SIZE should
  * report the declared capacity while V_BUF must point at the underlying
@@ -287,6 +321,10 @@ int main(int argc, char **argv) {
     test_case_empty();
     test_case();
     test_mass_case();
+    test_v_sprintf_basic();
+    test_v_sprintf_overflow();
+    test_v_sprintf_exact();
+    test_v_sprintf_large();
     test_helper_macros();
 
     if (failures == 0) {
