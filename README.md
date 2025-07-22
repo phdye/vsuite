@@ -1,4 +1,4 @@
-VSuite
+VSuite - Reliable VARCHAR handling and conversion
 ======
 
 VSuite is a lightweight collection of C macros for working with Oracle-style
