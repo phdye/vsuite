@@ -73,7 +73,7 @@ def parse_args(argv=None):
         metavar="A:B",
         help=(
             "Only transform a fraction of the file. Arguments are percentages"
-            " (50%) or decimals (0.5)."
+            " (50%%) or decimals (0.5)."
         ),
     )
     parser.add_argument(
