@@ -24,7 +24,7 @@ The following conversions are currently supported:
     ``sprintf(FOO.arr, fmt, ...);`` becomes ``VARCHAR_sprintf(FOO, fmt, ...);``.
 
 Usage:
-    better-varchar.py [options] <input-pc-file> <output-pc-file>
+    better-varchar.py [options] <input-pc-file> [<output-pc-file>]
 
 Options:
     -h --help          Show this help message and exit.
@@ -34,8 +34,9 @@ Options:
                        ``B`` are percentages (``50%``) or decimals (``0.5``).
     --function NAME    Restrict transformations to functions with ``NAME``.
                        May be repeated.
-    --show            Display the text that would be transformed.  No output
-                       file is written and the input is left untouched.
+    --show            Display the text that would be transformed and exit.
+                       When this option is used the output file argument
+                       must be omitted.
     --only:X          Selectively apply the specified transform.  May repeat
                        and also limits what is shown when ``--show`` is used.
 """
@@ -72,12 +73,12 @@ def parse_args(argv=None):
 
     parser = argparse.ArgumentParser(
         prog="better-varchar.py",
-        usage="better-varchar.py [options] <input-pc-file> <output-pc-file>",
+        usage="better-varchar.py [options] <input-pc-file> [<output-pc-file>]",
         description="Replace basic VARCHAR actions with macros.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("input_pc_file")
-    parser.add_argument("output_pc_file")
+    parser.add_argument("output_pc_file", nargs="?")
     parser.add_argument("--version", action="version", version=VERSION)
     parser.add_argument(
         "--lines",
@@ -101,7 +102,10 @@ def parse_args(argv=None):
     parser.add_argument(
         "--show",
         action="store_true",
-        help="Display text that would be transformed without modifying the input",
+        help=(
+            "Display text that would be transformed without modifying the input"
+            " and do not require an output file"
+        ),
     )
     parser.add_argument(
         "--only",
@@ -113,6 +117,13 @@ def parse_args(argv=None):
     if args.only:
         only_opts.extend(args.only)
     args.only = only_opts
+
+    if args.show:
+        if args.output_pc_file is not None:
+            parser.error("output_pc_file must not be specified with --show")
+    elif args.output_pc_file is None:
+        parser.error("the following arguments are required: output_pc_file")
+
     return args
 
 
