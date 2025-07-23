@@ -34,11 +34,14 @@ Options:
                        ``B`` are percentages (``50%``) or decimals (``0.5``).
     --function NAME    Restrict transformations to functions with ``NAME``.
                        May be repeated.
+    --show[:X]         Display the text that would be transformed. ``X`` may
+                       be a transform name and the option may repeat.
 """
 
 import argparse
 import re
 import io
+import sys
 
 # Application version string.  Bumped whenever the behaviour or command
 # line interface changes so users can query the script via ``--version``.
@@ -53,6 +56,22 @@ def parse_args(argv=None):
     file and exposes ``--version`` so users can confirm the script
     version at runtime.
     """
+
+    if argv is None:
+        argv = sys.argv[1:]
+
+    show_opts = []
+    clean = []
+    for arg in argv:
+        if arg.startswith("--show"):
+            if arg == "--show":
+                show_opts.append(None)
+            elif arg.startswith("--show:"):
+                show_opts.append(arg.split(":", 1)[1])
+            else:
+                show_opts.append(None)
+        else:
+            clean.append(arg)
 
     parser = argparse.ArgumentParser(
         prog="better-varchar.py",
@@ -82,10 +101,19 @@ def parse_args(argv=None):
         metavar="NAME",
         help="Restrict transformations to the given function name. May repeat",
     )
-    return parser.parse_args(argv)
+    parser.add_argument(
+        "--show",
+        metavar="TRANSFORM",
+        nargs="?",
+        action="append",
+        help="Display text that would be transformed. Optionally specify transform name.",
+    )
+    args = parser.parse_args(clean)
+    args.show = show_opts
+    return args
 
 
-def transform(text):
+def transform(text, base=0, show=None):
     """Run all source transformations on ``text``.
 
     Each helper performs a specialised regex substitution.  The
@@ -94,12 +122,12 @@ def transform(text):
     ``vp_copy`` or ``v_sprintf`` replacements.
     """
 
-    text = replace_setlenz(text)
-    text = replace_v_copy_1(text)
-    text = replace_v_copy_2(text)
-    text = replace_vp_copy(text)
-    text = replace_v_sprintf(text)
-    text = replace_zsetlen(text)
+    text = replace_setlenz(text, base, show)
+    text = replace_v_copy_1(text, base, show)
+    text = replace_v_copy_2(text, base, show)
+    text = replace_vp_copy(text, base, show)
+    text = replace_v_sprintf(text, base, show)
+    text = replace_zsetlen(text, base, show)
     return text
 
 
@@ -166,7 +194,7 @@ def _function_ranges(lines, names):
 _VAR = r"[-A-Za-z0-9_.->\[\]]+"
 
 
-def replace_setlenz(text):
+def replace_setlenz(text, base=0, show=None):
     """Convert NUL termination assignments to ``VARCHAR_SETLENZ``.
 
     Matches lines of the form ``VAR.arr[VAR.len] = '\0';``.  The variable
@@ -179,13 +207,17 @@ def replace_setlenz(text):
         r")\.arr\[(?P=var)\.len\]\s*=\s*'\0';",
         re.MULTILINE,
     )
+    if show:
+        for m in pattern.finditer(text):
+            line = base + text.count("\n", 0, m.start()) + 1
+            show("setlenz", line, m.group(0))
     return pattern.sub(
         lambda m: "%sVARCHAR_SETLENZ(%s);" % (m.group('indent'), m.group('var')),
         text,
     )
 
 
-def replace_v_copy_1(text):
+def replace_v_copy_1(text, base=0, show=None):
     """Collapse ``strcpy`` + length assignment into ``v_copy``.
 
     This looks for a call to ``strcpy`` where both arguments are the
@@ -201,13 +233,17 @@ def replace_v_copy_1(text):
         r")\.arr\s*\);\s*(?:\n\s*)?(?P=dst)\.arr\[(?P=src)\.len\]\s*=\s*'\0';",
         re.MULTILINE,
     )
+    if show:
+        for m in pattern.finditer(text):
+            line = base + text.count("\n", 0, m.start()) + 1
+            show("v_copy_1", line, m.group(0))
     return pattern.sub(
         lambda m: "%sv_copy(%s, %s);" % (m.group('indent'), m.group('dst'), m.group('src')),
         text,
     )
 
 
-def replace_v_copy_2(text):
+def replace_v_copy_2(text, base=0, show=None):
     """Collapse ``strcpy`` of .arr to .arr into ``v_copy``.
 
     This looks for a call to ``strcpy`` where both arguments are the
@@ -219,13 +255,17 @@ def replace_v_copy_2(text):
         r')\.arr,\s*(?:\(char\*\))?\s*(?P<src>' + _VAR + r')\.arr\s*\);',
         re.MULTILINE,
     )
+    if show:
+        for m in pattern.finditer(text):
+            line = base + text.count("\n", 0, m.start()) + 1
+            show("v_copy_2", line, m.group(0))
     return pattern.sub(
         lambda m: "%sv_copy(%s, %s);" % (m.group('indent'), m.group('dst'), m.group('src')),
         text,
     )
 
 
-def replace_vp_copy(text):
+def replace_vp_copy(text, base=0, show=None):
     """Rewrite ``strcpy`` from a string literal into ``vp_copy``.
 
     This pattern specifically handles copying a quoted literal into a
@@ -238,13 +278,17 @@ def replace_vp_copy(text):
         r")\.arr,\s*\"(?P<lit>[^\"]*)\"\s*\);",
         re.MULTILINE,
     )
+    if show:
+        for m in pattern.finditer(text):
+            line = base + text.count("\n", 0, m.start()) + 1
+            show("vp_copy", line, m.group(0))
     return pattern.sub(
         lambda m: "%svp_copy(%s, \"%s\");" % (m.group('indent'), m.group('foo'), m.group('lit')),
         text,
     )
 
 
-def replace_v_sprintf(text):
+def replace_v_sprintf(text, base=0, show=None):
     """Turn ``sprintf`` calls operating on ``VARCHAR`` buffers into ``VARCHAR_sprintf``.
 
     The function captures everything after the destination buffer so that
@@ -256,13 +300,17 @@ def replace_v_sprintf(text):
         r")\.arr,\s*(?P<args>[^;]*?)\)\s*;",
         re.MULTILINE,
     )
+    if show:
+        for m in pattern.finditer(text):
+            line = base + text.count("\n", 0, m.start()) + 1
+            show("v_sprintf", line, m.group(0))
     return pattern.sub(
         lambda m: "%sVARCHAR_sprintf(%s, %s);" % (m.group('indent'), m.group('foo'), m.group('args')),
         text,
     )
 
 
-def replace_zsetlen(text):
+def replace_zsetlen(text, base=0, show=None):
     """Convert strlen-based length assignments to ``VARCHAR_ZSETLEN``.
 
     This handles statements like ``VAR.len = strlen((char*) VAR.arr);`` and
@@ -275,6 +323,10 @@ def replace_zsetlen(text):
         r"(?P<indent>^[ \t]*)(?P<dst>" + _VAR + r")\.len\s*=\s*strlen\(\s*(?:\(char\*\))?\s*" + _VAR + r"\.arr\s*\)\s*;",
         re.MULTILINE,
     )
+    if show:
+        for m in pattern.finditer(text):
+            line = base + text.count("\n", 0, m.start()) + 1
+            show("zsetlen", line, m.group(0))
     return pattern.sub(
         lambda m: "%sVARCHAR_ZSETLEN(%s);" % (m.group('indent'), m.group('dst')),
         text,
@@ -285,6 +337,21 @@ def main(argv=None):
     """Entry point used by the ``__main__`` block and tests."""
 
     args = parse_args(argv)
+
+    show_all = False
+    show_filters = set()
+    if args.show:
+        for item in args.show:
+            if item is None:
+                show_all = True
+            else:
+                show_filters.add(item.replace('-', '_'))
+
+        def _show(name, line, text):
+            if show_all or name in show_filters:
+                print(f"{name:<15} {line:5d}: {text.replace('\n', r'\\n')}")
+    else:
+        _show = None
     with io.open(args.input_pc_file, "r", encoding="utf-8") as fh:
         data = fh.read()
 
@@ -311,7 +378,7 @@ def main(argv=None):
     result_lines = lines[:]
     for s, e in segments:
         chunk = "".join(lines[s:e])
-        chunk = transform(chunk)
+        chunk = transform(chunk, base=s + 1, show=_show)
         result_lines[s:e] = chunk.splitlines(True)
 
     result = "".join(result_lines)
