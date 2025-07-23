@@ -349,7 +349,11 @@ def main(argv=None):
 
         def _show(name, line, text):
             if show_all or name in show_filters:
-                print(f"{name:<15} {line:5d}: {text.replace('\n', r'\\n')}")
+                print("{:<15} {:5d}: {}".format(
+                    name,
+                    line,
+                    text.replace('\n', r'\\n')
+                ))
     else:
         _show = None
     with io.open(args.input_pc_file, "r", encoding="utf-8") as fh:
