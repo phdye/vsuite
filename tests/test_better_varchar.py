@@ -51,6 +51,27 @@ class TestBetterVarchar(unittest.TestCase):
         with self.assertRaises(SystemExit):
             better_varchar.parse_args(['--show', 'in.pc', 'out.pc'])
 
+    def test_parse_show_with_lines(self):
+        args = better_varchar.parse_args([
+            '--show', '--lines', '1:5', 'in.pc'
+        ])
+        self.assertTrue(args.show)
+        self.assertEqual(args.lines, '1:5')
+
+    def test_parse_show_with_fraction(self):
+        args = better_varchar.parse_args([
+            '--show', '--fraction', '0.1:0.2', 'in.pc'
+        ])
+        self.assertTrue(args.show)
+        self.assertEqual(args.fraction, '0.1:0.2')
+
+    def test_parse_show_with_function(self):
+        args = better_varchar.parse_args([
+            '--show', '--function', 'foo', 'in.pc'
+        ])
+        self.assertTrue(args.show)
+        self.assertEqual(args.function, ['foo'])
+
     def test_show_no_write(self):
         import tempfile
         tmpdir = tempfile.mkdtemp()
