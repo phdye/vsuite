@@ -107,31 +107,66 @@ class TestBetterVarchar(unittest.TestCase):
                     "{\n"
                     "    BAR.arr[BAR.len] = '\0';\n"
                     "}\n"
+                    "void fizz() \n"
+                    "{\n"
+                    "    FOO.arr[FOO.len] = '\0';\n"
+                    "}\n"
+                    "void buzz() \n"
+                    "{\n"
+                    "    BAR.arr[BAR.len] = '\0';\n"
+                    "}\n"
                 )
 
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
                 better_varchar.main(['--show', in_path])
             all_output = buf.getvalue().strip().splitlines()
-            self.assertEqual(len(all_output), 2)
+            self.assertEqual(len(all_output), 4)
 
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
-                better_varchar.main(['--show', '--lines', '1:3', in_path])
+                better_varchar.main(['--show', '--lines', '1:2', in_path])
+            line_output = buf.getvalue().strip().splitlines()
+            self.assertEqual(len(line_output), 0)
+
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                better_varchar.main(['--show', '--lines', '1:4', in_path])
             line_output = buf.getvalue().strip().splitlines()
             self.assertEqual(len(line_output), 1)
 
+            # Outout is matched later with fraction 50% / 0.50 and function foo+bar output
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                better_varchar.main(['--show', '--lines', '1:8', in_path])
+            line_output = buf.getvalue().strip().splitlines()
+            self.assertEqual(len(line_output), 2)
+
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                better_varchar.main(['--show', '--fraction', '0:0.25', in_path])
+            frac_output = buf.getvalue().strip().splitlines()
+            self.assertEqual(len(frac_output), 1)
+
+            # Outout is matched later with final lines:... output
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
                 better_varchar.main(['--show', '--fraction', '0:0.5', in_path])
             frac_output = buf.getvalue().strip().splitlines()
-            self.assertEqual(len(frac_output), 1)
+            self.assertEqual(len(frac_output), 2)
 
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
                 better_varchar.main(['--show', '--function', 'foo', in_path])
             func_output = buf.getvalue().strip().splitlines()
             self.assertEqual(len(func_output), 1)
+
+            # Outout is matched later with final lines:... output
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                better_varchar.main(['--show', '--function', 'foo', '--function', 'bar', in_path])
+            func_output = buf.getvalue().strip().splitlines()
+            self.assertEqual(len(func_output), 2)
 
             self.assertGreater(len(all_output), len(line_output))
             self.assertEqual(line_output, frac_output)
