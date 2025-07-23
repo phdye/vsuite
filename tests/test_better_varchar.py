@@ -51,6 +51,27 @@ class TestBetterVarchar(unittest.TestCase):
         with self.assertRaises(SystemExit):
             better_varchar.parse_args(['--show', 'in.pc', 'out.pc'])
 
+    def test_parse_show_with_lines(self):
+        args = better_varchar.parse_args([
+            '--show', '--lines', '1:5', 'in.pc'
+        ])
+        self.assertTrue(args.show)
+        self.assertEqual(args.lines, '1:5')
+
+    def test_parse_show_with_fraction(self):
+        args = better_varchar.parse_args([
+            '--show', '--fraction', '0.1:0.2', 'in.pc'
+        ])
+        self.assertTrue(args.show)
+        self.assertEqual(args.fraction, '0.1:0.2')
+
+    def test_parse_show_with_function(self):
+        args = better_varchar.parse_args([
+            '--show', '--function', 'foo', 'in.pc'
+        ])
+        self.assertTrue(args.show)
+        self.assertEqual(args.function, ['foo'])
+
     def test_show_no_write(self):
         import tempfile
         tmpdir = tempfile.mkdtemp()
@@ -66,6 +87,58 @@ class TestBetterVarchar(unittest.TestCase):
                 os.remove(in_path)
             if os.path.exists(out_path):
                 os.remove(out_path)
+            os.rmdir(tmpdir)
+
+    def test_show_with_scopes(self):
+        import tempfile
+        import io
+        import contextlib
+
+        tmpdir = tempfile.mkdtemp()
+        try:
+            in_path = os.path.join(tmpdir, 'in.pc')
+            with open(in_path, 'w') as fh:
+                fh.write(
+                    "void foo() \n"
+                    "{\n"
+                    "    FOO.arr[FOO.len] = '\0';\n"
+                    "}\n"
+                    "void bar() \n"
+                    "{\n"
+                    "    BAR.arr[BAR.len] = '\0';\n"
+                    "}\n"
+                )
+
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                better_varchar.main(['--show', in_path])
+            all_output = buf.getvalue().strip().splitlines()
+            self.assertEqual(len(all_output), 2)
+
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                better_varchar.main(['--show', '--lines', '1:3', in_path])
+            line_output = buf.getvalue().strip().splitlines()
+            self.assertEqual(len(line_output), 1)
+
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                better_varchar.main(['--show', '--fraction', '0:0.5', in_path])
+            frac_output = buf.getvalue().strip().splitlines()
+            self.assertEqual(len(frac_output), 1)
+
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                better_varchar.main(['--show', '--function', 'foo', in_path])
+            func_output = buf.getvalue().strip().splitlines()
+            self.assertEqual(len(func_output), 1)
+
+            self.assertGreater(len(all_output), len(line_output))
+            self.assertEqual(line_output, frac_output)
+            self.assertEqual(line_output, func_output)
+        finally:
+            if os.path.exists(in_path):
+                os.remove(in_path)
             os.rmdir(tmpdir)
 
 if __name__ == '__main__':
