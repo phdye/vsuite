@@ -28,5 +28,18 @@ class TestBetterVarchar(unittest.TestCase):
         out = better_varchar.transform(src)
         self.assertIn('vp_copy(foo, "hi");', out)
 
+    def test_only_filter(self):
+        src = (
+            "strcpy(foo.arr, bar.arr);\nfoo.arr[bar.len] = '\0';\n"
+            "foo.arr[foo.len] = '\0';"
+        )
+        out = better_varchar.transform(src, only=['setlenz'])
+        self.assertIn('VARCHAR_SETLENZ(foo);', out)
+        self.assertNotIn('v_copy(foo, bar);', out)
+
+    def test_parse_only(self):
+        args = better_varchar.parse_args(['--only:vp_copy', 'in.pc', 'out.pc'])
+        self.assertEqual(args.only, ['vp_copy'])
+
 if __name__ == '__main__':
     unittest.main()

@@ -36,6 +36,7 @@ Options:
                        May be repeated.
     --show[:X]         Display the text that would be transformed. ``X`` may
                        be a transform name and the option may repeat.
+    --only:X          Selectively apply the specified transform. May repeat.
 """
 
 import argparse
@@ -61,6 +62,7 @@ def parse_args(argv=None):
         argv = sys.argv[1:]
 
     show_opts = []
+    only_opts = []
     clean = []
     for arg in argv:
         if arg.startswith("--show"):
@@ -70,6 +72,8 @@ def parse_args(argv=None):
                 show_opts.append(arg.split(":", 1)[1])
             else:
                 show_opts.append(None)
+        elif arg.startswith("--only:"):
+            only_opts.append(arg.split(":", 1)[1])
         else:
             clean.append(arg)
 
@@ -108,12 +112,19 @@ def parse_args(argv=None):
         action="append",
         help="Display text that would be transformed. Optionally specify transform name.",
     )
+    parser.add_argument(
+        "--only",
+        action="append",
+        metavar="TRANSFORM",
+        help="Selectively apply the given transform. May repeat",
+    )
     args = parser.parse_args(clean)
     args.show = show_opts
+    args.only = only_opts
     return args
 
 
-def transform(text, base=0, show=None):
+def transform(text, base=0, show=None, only=None):
     """Run all source transformations on ``text``.
 
     Each helper performs a specialised regex substitution.  The
@@ -122,12 +133,23 @@ def transform(text, base=0, show=None):
     ``vp_copy`` or ``v_sprintf`` replacements.
     """
 
-    text = replace_setlenz(text, base, show)
-    text = replace_v_copy_1(text, base, show)
-    text = replace_v_copy_2(text, base, show)
-    text = replace_vp_copy(text, base, show)
-    text = replace_v_sprintf(text, base, show)
-    text = replace_zsetlen(text, base, show)
+    if only:
+        only = set(o.replace('-', '_') for o in only)
+    text = replace_setlenz(text, base, show) if not only or 'setlenz' in only else text
+    text = (
+        replace_v_copy_1(text, base, show)
+        if not only or 'v_copy_1' in only else text
+    )
+    text = (
+        replace_v_copy_2(text, base, show)
+        if not only or 'v_copy_2' in only else text
+    )
+    text = replace_vp_copy(text, base, show) if not only or 'vp_copy' in only else text
+    text = (
+        replace_v_sprintf(text, base, show)
+        if not only or 'v_sprintf' in only else text
+    )
+    text = replace_zsetlen(text, base, show) if not only or 'zsetlen' in only else text
     return text
 
 
@@ -352,6 +374,7 @@ def main(argv=None):
                 print(f"{name:<15} {line:5d}: {text.replace('\n', r'\\n')}")
     else:
         _show = None
+    only_filters = [o.replace('-', '_') for o in args.only] if args.only else None
     with io.open(args.input_pc_file, "r", encoding="utf-8") as fh:
         data = fh.read()
 
@@ -378,7 +401,7 @@ def main(argv=None):
     result_lines = lines[:]
     for s, e in segments:
         chunk = "".join(lines[s:e])
-        chunk = transform(chunk, base=s + 1, show=_show)
+        chunk = transform(chunk, base=s + 1, show=_show, only=only_filters)
         result_lines[s:e] = chunk.splitlines(True)
 
     result = "".join(result_lines)
