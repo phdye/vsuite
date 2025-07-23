@@ -1,12 +1,13 @@
 import unittest
-import importlib.util
 import os
+import types
 
-SPEC = importlib.util.spec_from_file_location(
-    "better_varchar", os.path.join(os.path.dirname(__file__), "..", "better-varchar.py")
-)
-better_varchar = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(better_varchar)
+module_path = os.path.join(os.path.dirname(__file__), "..", "better-varchar.py")
+better_varchar = types.ModuleType("better_varchar")
+better_varchar.__file__ = module_path
+with open(module_path, "r") as fh:
+    code = compile(fh.read(), module_path, "exec")
+exec(code, better_varchar.__dict__)
 
 class TestBetterVarchar(unittest.TestCase):
     """Tests for the better-varchar source transformation helpers."""
