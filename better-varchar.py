@@ -34,9 +34,10 @@ Options:
                        ``B`` are percentages (``50%``) or decimals (``0.5``).
     --function NAME    Restrict transformations to functions with ``NAME``.
                        May be repeated.
-    --show[:X]         Display the text that would be transformed. ``X`` may
-                       be a transform name and the option may repeat.
-    --only:X          Selectively apply the specified transform. May repeat.
+    --show            Display the text that would be transformed.  No output
+                       file is written and the input is left untouched.
+    --only:X          Selectively apply the specified transform.  May repeat
+                       and also limits what is shown when ``--show`` is used.
 """
 
 import argparse
@@ -46,7 +47,7 @@ import sys
 
 # Application version string.  Bumped whenever the behaviour or command
 # line interface changes so users can query the script via ``--version``.
-VERSION = "0.1"
+VERSION = "0.2"
 
 
 def parse_args(argv=None):
@@ -61,18 +62,10 @@ def parse_args(argv=None):
     if argv is None:
         argv = sys.argv[1:]
 
-    show_opts = []
     only_opts = []
     clean = []
     for arg in argv:
-        if arg.startswith("--show"):
-            if arg == "--show":
-                show_opts.append(None)
-            elif arg.startswith("--show:"):
-                show_opts.append(arg.split(":", 1)[1])
-            else:
-                show_opts.append(None)
-        elif arg.startswith("--only:"):
+        if arg.startswith("--only:"):
             only_opts.append(arg.split(":", 1)[1])
         else:
             clean.append(arg)
@@ -107,10 +100,8 @@ def parse_args(argv=None):
     )
     parser.add_argument(
         "--show",
-        metavar="TRANSFORM",
-        nargs="?",
-        action="append",
-        help="Display text that would be transformed. Optionally specify transform name.",
+        action="store_true",
+        help="Display text that would be transformed without modifying the input",
     )
     parser.add_argument(
         "--only",
@@ -119,7 +110,8 @@ def parse_args(argv=None):
         help="Selectively apply the given transform. May repeat",
     )
     args = parser.parse_args(clean)
-    args.show = show_opts
+    if args.only:
+        only_opts.extend(args.only)
     args.only = only_opts
     return args
 
@@ -360,21 +352,13 @@ def main(argv=None):
 
     args = parse_args(argv)
 
-    show_all = False
-    show_filters = set()
+    only_filters = [o.replace('-', '_') for o in args.only] if args.only else None
     if args.show:
-        for item in args.show:
-            if item is None:
-                show_all = True
-            else:
-                show_filters.add(item.replace('-', '_'))
-
         def _show(name, line, text):
-            if show_all or name in show_filters:
+            if not only_filters or name in only_filters:
                 print("%-15s %5d: %s" % (name, line, text.replace('\n', r'\\n')))
     else:
         _show = None
-    only_filters = [o.replace('-', '_') for o in args.only] if args.only else None
     with io.open(args.input_pc_file, "r", encoding="utf-8") as fh:
         data = fh.read()
 
@@ -401,13 +385,16 @@ def main(argv=None):
     result_lines = lines[:]
     for s, e in segments:
         chunk = "".join(lines[s:e])
-        chunk = transform(chunk, base=s + 1, show=_show, only=only_filters)
-        result_lines[s:e] = chunk.splitlines(True)
+        if args.show:
+            transform(chunk, base=s + 1, show=_show, only=only_filters)
+        else:
+            chunk = transform(chunk, base=s + 1, show=_show, only=only_filters)
+            result_lines[s:e] = chunk.splitlines(True)
 
-    result = "".join(result_lines)
-
-    with io.open(args.output_pc_file, "w", encoding="utf-8") as fh:
-        fh.write(result)
+    if not args.show:
+        result = "".join(result_lines)
+        with io.open(args.output_pc_file, "w", encoding="utf-8") as fh:
+            fh.write(result)
 
 
 if __name__ == "__main__":

@@ -42,5 +42,27 @@ class TestBetterVarchar(unittest.TestCase):
         args = better_varchar.parse_args(['--only:vp_copy', 'in.pc', 'out.pc'])
         self.assertEqual(args.only, ['vp_copy'])
 
+    def test_parse_show(self):
+        args = better_varchar.parse_args(['--show', '--only:setlenz', 'in.pc', 'out.pc'])
+        self.assertTrue(args.show)
+        self.assertEqual(args.only, ['setlenz'])
+
+    def test_show_no_write(self):
+        import tempfile
+        tmpdir = tempfile.mkdtemp()
+        try:
+            in_path = os.path.join(tmpdir, 'in.pc')
+            out_path = os.path.join(tmpdir, 'out.pc')
+            with open(in_path, 'w') as fh:
+                fh.write("FOO.arr[FOO.len] = '\0';\n")
+            better_varchar.main(['--show', in_path, out_path])
+            self.assertFalse(os.path.exists(out_path))
+        finally:
+            if os.path.exists(in_path):
+                os.remove(in_path)
+            if os.path.exists(out_path):
+                os.remove(out_path)
+            os.rmdir(tmpdir)
+
 if __name__ == '__main__':
     unittest.main()
