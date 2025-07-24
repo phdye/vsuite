@@ -45,11 +45,15 @@ static void test_init_clear(void) {
     strcpy(v.arr, "abc");
     v.len = 3;
     zv_init(v);
-    CHECK("zv_init", v.len == 0 && v.arr[0] == '\0');
+    CHECK_MSG("zv_init", v.len == 0 && v.arr[0] == '\0',
+              "expected empty string but got len=%u first=0x%02x",
+              v.len, (unsigned char)v.arr[0]);
     strcpy(v.arr, "abc");
     v.len = 3;
     zv_clear(v);
-    CHECK("zv_clear", v.len == 0 && v.arr[0] == '\0');
+    CHECK_MSG("zv_clear", v.len == 0 && v.arr[0] == '\0',
+              "expected empty string but got len=%u first=0x%02x",
+              v.len, (unsigned char)v.arr[0]);
 }
 
 /*
@@ -62,12 +66,18 @@ static void test_valid(void) {
     strcpy(v.arr, "abc");
     v.len = 3;
     v.arr[3] = '\0';
-    CHECK("zv_valid ok", zv_valid(v));
+    CHECK_MSG("zv_valid ok", zv_valid(v),
+              "expected valid string but got len=%u cap=%zu term=%d",
+              v.len, V_SIZE(v), v.arr[3]);
     v.len = 4;
-    CHECK("zv_valid len", !zv_valid(v));      /* length beyond buffer */
+    CHECK_MSG("zv_valid len", !zv_valid(v),
+              "expected failure for len beyond capacity: len=%u cap=%zu",
+              v.len, V_SIZE(v));
     v.len = 3;
     v.arr[3] = 'x';
-    CHECK("zv_valid term", !zv_valid(v));     /* no terminator */
+    CHECK_MSG("zv_valid term", !zv_valid(v),
+              "expected failure for missing terminator: len=%u term=0x%02x",
+              v.len, (unsigned char)v.arr[3]);
 }
 
 /* Validate that zv_valid succeeds when len is zero but the array is
@@ -77,7 +87,9 @@ static void test_valid_zero_len_good_term(void) {
     VARCHAR(v, 2);
     v.len = 0;
     v.arr[0] = '\0';
-    CHECK("zv_valid zero good", zv_valid(v));
+    CHECK_MSG("zv_valid zero good", zv_valid(v),
+              "expected valid empty string but got len=%u first=0x%02x",
+              v.len, (unsigned char)v.arr[0]);
 }
 
 /* Even length zero strings must have a terminator byte. */
@@ -85,7 +97,9 @@ static void test_valid_zero_len_bad_term(void) {
     VARCHAR(v, 2);
     v.arr[0] = 'x';
     v.len = 0;
-    CHECK("zv_valid zero bad", !zv_valid(v));
+    CHECK_MSG("zv_valid zero bad", !zv_valid(v),
+              "expected failure for non-NUL terminator 0x%02x",
+              (unsigned char)v.arr[0]);
 }
 
 /*
@@ -95,21 +109,27 @@ static void test_valid_zero_len_bad_term(void) {
  */
 static void test_has_capacity(void) {
     VARCHAR(v, 5);                 /* 4 bytes usable */
-    CHECK("zv_has_capacity ok", zv_has_capacity(v, 4));
-    CHECK("zv_has_capacity max", !zv_has_capacity(v, 5));
-    CHECK("zv_has_capacity zero", zv_has_capacity(v, 0));
+    CHECK_MSG("zv_has_capacity ok", zv_has_capacity(v, 4),
+              "N=4 cap=%zu", ZV_CAPACITY(v));
+    CHECK_MSG("zv_has_capacity max", !zv_has_capacity(v, 5),
+              "N=5 cap=%zu", ZV_CAPACITY(v));
+    CHECK_MSG("zv_has_capacity zero", zv_has_capacity(v, 0),
+              "N=0 cap=%zu", ZV_CAPACITY(v));
 
     VARCHAR(tiny, 1);              /* no space for data */
-    CHECK("zv_has_capacity none", !zv_has_capacity(tiny, 1) &&
-                                  zv_has_capacity(tiny, 0));
+    CHECK_MSG("zv_has_capacity none",
+              !zv_has_capacity(tiny, 1) && zv_has_capacity(tiny, 0),
+              "cap=%zu", ZV_CAPACITY(tiny));
 }
 
 /* ZV_CAPACITY reports the usable size excluding the terminator. */
 static void test_zv_capacity(void) {
     VARCHAR(v, 5);
-    CHECK("ZV_CAPACITY", ZV_CAPACITY(v) == 4);
+    CHECK_MSG("ZV_CAPACITY", ZV_CAPACITY(v) == 4,
+              "expected capacity 4 but got %zu", ZV_CAPACITY(v));
     VARCHAR(tiny, 1);
-    CHECK("ZV_CAPACITY zero", ZV_CAPACITY(tiny) == 0);
+    CHECK_MSG("ZV_CAPACITY zero", ZV_CAPACITY(tiny) == 0,
+              "expected capacity 0 but got %zu", ZV_CAPACITY(tiny));
 }
 
 /*
@@ -119,10 +139,14 @@ static void test_zv_capacity(void) {
  */
 static void test_zero_term(void) {
     VARCHAR(v1, 4); memcpy(v1.arr, "abcx", 4); v1.len = 3; zv_zero_terminate(v1);
-    CHECK("zv_zero_term keep", v1.len == 3 && v1.arr[3] == '\0');
+    CHECK_MSG("zv_zero_term keep", v1.len == 3 && v1.arr[3] == '\0',
+              "expected len=3 term=0 got len=%u term=0x%02x",
+              v1.len, (unsigned char)v1.arr[3]);
 
     VARCHAR(v2, 4); memcpy(v2.arr, "abcd", 4); v2.len = 4; zv_zero_terminate(v2);
-    CHECK("zv_zero_term cut", v2.len == 3 && v2.arr[3] == '\0');
+    CHECK_MSG("zv_zero_term cut", v2.len == 3 && v2.arr[3] == '\0',
+              "expected truncation to len=3 term=0 got len=%u term=0x%02x",
+              v2.len, (unsigned char)v2.arr[3]);
 }
 
 /* Calling zv_zero_term() multiple times should not change data. */
@@ -131,7 +155,9 @@ static void test_zero_term_idempotent(void) {
     strcpy(v.arr, "abc");
     v.len = 3;
     zv_zero_terminate(v);
-    CHECK("zv_zero_term idempotent", v.len == 3 && strcmp(v.arr, "abc") == 0);
+    CHECK_MSG("zv_zero_term idempotent", v.len == 3 && strcmp(v.arr, "abc") == 0,
+              "expected unchanged 'abc' len=3 but got len=%u buf='%s'",
+              v.len, v.arr);
 }
 
 /* zv_zero_term() should handle empty strings and write the terminator. */
@@ -140,7 +166,9 @@ static void test_zero_term_empty(void) {
     v.len = 0;
     v.arr[0] = 'x';
     zv_zero_terminate(v);
-    CHECK("zv_zero_term empty", v.len == 0 && v.arr[0] == '\0');
+    CHECK_MSG("zv_zero_term empty", v.len == 0 && v.arr[0] == '\0',
+              "expected len=0 terminator got len=%u first=0x%02x",
+              v.len, (unsigned char)v.arr[0]);
 }
 
 /* Ensure zv_zero_term works on a size-one buffer by resetting the single
@@ -151,7 +179,9 @@ static void test_zero_term_size_one(void) {
     v.arr[0] = 'a';
     v.len = 1;
     zv_zero_terminate(v);
-    CHECK("zv_zero_term size1", v.len == 0 && v.arr[0] == '\0');
+    CHECK_MSG("zv_zero_term size1", v.len == 0 && v.arr[0] == '\0',
+              "expected len=0 terminator got len=%u first=0x%02x",
+              v.len, (unsigned char)v.arr[0]);
 }
 
 /*
@@ -164,9 +194,13 @@ static void test_copy(void) {
     strcpy(src.arr, "abc");
     src.len = 3;
     int n = zv_copy(dst, src);
-    CHECK("zv_copy len", n == 3 && dst.len == 3 && strcmp(dst.arr, "abc") == 0);
+    CHECK_MSG("zv_copy len", n == 3 && dst.len == 3 && strcmp(dst.arr, "abc") == 0,
+              "expected full copy n=3 len=3 buf='abc' got n=%d len=%u buf='%s'",
+              n, dst.len, dst.arr);
     n = zv_copy(small, src);
-    CHECK("zv_copy fail", n == 0 && small.len == 2 && small.arr[2] == '\0');
+    CHECK_MSG("zv_copy fail", n == 2 && small.len == 2 && strcmp(small.arr, "ab") == 0,
+              "expected truncation to 'ab' got n=%d len=%u buf='%.*s'",
+              n, small.len, (int)small.len, small.arr);
 }
 
 /* Copy that exactly fills the destination including the terminator. */
@@ -175,7 +209,9 @@ static void test_copy_exact(void) {
     strcpy(src.arr, "abc");
     src.len = 3;
     int n = zv_copy(dst, src);
-    CHECK("zv_copy exact", n == 3 && dst.len == 3 && strcmp(dst.arr, "abc") == 0);
+    CHECK_MSG("zv_copy exact", n == 3 && dst.len == 3 && strcmp(dst.arr, "abc") == 0,
+              "expected exact copy n=3 len=3 buf='abc' got n=%d len=%u buf='%s'",
+              n, dst.len, dst.arr);
 }
 
 /* Empty source results in empty destination with terminator preserved. */
@@ -184,7 +220,9 @@ static void test_copy_empty(void) {
     src.arr[0] = '\0';
     src.len = 0;
     int n = zv_copy(dst, src);
-    CHECK("zv_copy empty", n == 0 && dst.len == 0 && dst.arr[0] == '\0');
+    CHECK_MSG("zv_copy empty", n == 0 && dst.len == 0 && dst.arr[0] == '\0',
+              "expected empty copy got n=%d len=%u first=0x%02x",
+              n, dst.len, (unsigned char)dst.arr[0]);
 }
 
 /* Copying onto itself should leave the contents unchanged. */
@@ -193,7 +231,9 @@ static void test_copy_self(void) {
     strcpy(v.arr, "abc");
     v.len = 3;
     int n = zv_copy(v, v);
-    CHECK("zv_copy self", n == 3 && v.len == 3 && strcmp(v.arr, "abc") == 0);
+    CHECK_MSG("zv_copy self", n == 3 && v.len == 3 && strcmp(v.arr, "abc") == 0,
+              "expected no change copying onto self got n=%d len=%u buf='%s'",
+              n, v.len, v.arr);
 }
 
 /* Ensure very large strings are copied correctly and remain terminated. */
@@ -203,7 +243,9 @@ static void test_large_copy(void) {
     memset(src.arr, 'a', N-1); src.arr[N-1] = '\0';
     src.len = N-1;
     int n = zv_copy(dst, src);
-    CHECK("zv_copy large", n == N-1 && dst.len == N-1 && memcmp(dst.arr, src.arr, N-1) == 0 && dst.arr[N-1] == '\0');
+    CHECK_MSG("zv_copy large", n == N-1 && dst.len == N-1 && memcmp(dst.arr, src.arr, N-1) == 0 && dst.arr[N-1] == '\0',
+              "expected n=%d len=%d first=%c got n=%d len=%u first=%c",
+              N-1, N-1, src.arr[0], n, dst.len, dst.arr[0]);
 }
 
 /* Destination size of one cannot hold any characters. */
@@ -212,7 +254,9 @@ static void test_copy_dest_size_one(void) {
     strcpy(src.arr,"a");
     src.len=1;
     int n = zv_copy(dst, src);
-    CHECK("zv_copy tiny", n == 0 && dst.len == 0);
+    CHECK_MSG("zv_copy tiny", n == 0 && dst.len == 0 && dst.arr[0] == '\0',
+              "expected failure with len=0 got n=%d len=%u first=0x%02x",
+              n, dst.len, (unsigned char)dst.arr[0]);
 }
 
 /*
@@ -226,7 +270,9 @@ static void test_extreme_copy(void) {
     src.arr[N-1] = '\0';
     src.len = N-1;
     int n = zv_copy(dst, src);
-    CHECK("zv_copy extreme", n == N-1 && dst.len == N-1 && memcmp(dst.arr, src.arr, N-1) == 0 && dst.arr[N-1] == '\0');
+    CHECK_MSG("zv_copy extreme", n == N-1 && dst.len == N-1 && memcmp(dst.arr, src.arr, N-1) == 0 && dst.arr[N-1] == '\0',
+              "expected n=%d len=%d first=%c got n=%d len=%u first=%c",
+              N-1, N-1, src.arr[0], n, dst.len, dst.arr[0]);
 }
 
 /* Verify trimming functions while maintaining termination. */
@@ -235,17 +281,20 @@ static void test_trim(void) {
     strcpy(v1.arr, "  hi");
     v1.len = 4;
     zv_ltrim(v1);
-    CHECK("zv_ltrim", v1.len == 2 && strcmp(v1.arr, "hi") == 0);
+    CHECK_MSG("zv_ltrim", v1.len == 2 && strcmp(v1.arr, "hi") == 0,
+              "expected 'hi' len=2 got len=%u buf='%s'", v1.len, v1.arr);
 
     strcpy(v2.arr, "hi  ");
     v2.len = 4;
     zv_rtrim(v2);
-    CHECK("zv_rtrim", v2.len == 2 && strcmp(v2.arr, "hi") == 0);
+    CHECK_MSG("zv_rtrim", v2.len == 2 && strcmp(v2.arr, "hi") == 0,
+              "expected 'hi' len=2 got len=%u buf='%s'", v2.len, v2.arr);
 
     strcpy(v3.arr, "  hi  ");
     v3.len = 6;
     zv_trim(v3);
-    CHECK("zv_trim", v3.len == 2 && strcmp(v3.arr, "hi") == 0);
+    CHECK_MSG("zv_trim", v3.len == 2 && strcmp(v3.arr, "hi") == 0,
+              "expected 'hi' len=2 got len=%u buf='%s'", v3.len, v3.arr);
 }
 
 /* Trimming an already trimmed string should do nothing. */
@@ -254,7 +303,9 @@ static void test_trim_noop(void) {
     strcpy(v.arr, "hi");
     v.len = 2;
     zv_trim(v);
-    CHECK("zv_trim no-op", v.len == 2 && strcmp(v.arr, "hi") == 0);
+    CHECK_MSG("zv_trim no-op", v.len == 2 && strcmp(v.arr, "hi") == 0,
+              "expected no trimming len=2 buf='hi' got len=%u buf='%s'",
+              v.len, v.arr);
 }
 
 /* When the string only contains spaces trimming should yield empty string. */
@@ -263,7 +314,9 @@ static void test_trim_all_spaces(void) {
     strcpy(v.arr, "   ");
     v.len = 3;
     zv_trim(v);
-    CHECK("zv_trim all", v.len == 0 && v.arr[0] == '\0');
+    CHECK_MSG("zv_trim all", v.len == 0 && v.arr[0] == '\0',
+              "expected empty result got len=%u first=0x%02x",
+              v.len, (unsigned char)v.arr[0]);
 }
 
 /* All trim functions should accept an already empty string. */
@@ -272,11 +325,14 @@ static void test_trim_empty(void) {
     v.arr[0] = '\0';
     v.len = 0;
     zv_ltrim(v);
-    CHECK("zv_ltrim empty", v.len == 0 && v.arr[0] == '\0');
+    CHECK_MSG("zv_ltrim empty", v.len == 0 && v.arr[0] == '\0',
+              "expected len=0 got len=%u", v.len);
     zv_rtrim(v);
-    CHECK("zv_rtrim empty", v.len == 0 && v.arr[0] == '\0');
+    CHECK_MSG("zv_rtrim empty", v.len == 0 && v.arr[0] == '\0',
+              "expected len=0 got len=%u", v.len);
     zv_trim(v);
-    CHECK("zv_trim empty", v.len == 0 && v.arr[0] == '\0');
+    CHECK_MSG("zv_trim empty", v.len == 0 && v.arr[0] == '\0',
+              "expected len=0 got len=%u", v.len);
 }
 
 /* Trimming should also strip tabs and newlines from the edges. */
@@ -285,11 +341,13 @@ static void test_trim_tabs_newlines(void) {
     strcpy(v1.arr, "\tfoo\n");
     v1.len = 5;
     zv_ltrim(v1);
-    CHECK("zv_ltrim misc", v1.len == 4 && strcmp(v1.arr, "foo\n") == 0);
+    CHECK_MSG("zv_ltrim misc", v1.len == 4 && strcmp(v1.arr, "foo\n") == 0,
+              "expected 'foo\\n' len=4 got len=%u buf='%s'", v1.len, v1.arr);
     strcpy(v2.arr, "foo\t\n");
     v2.len = 5;
     zv_rtrim(v2);
-    CHECK("zv_rtrim misc", v2.len == 3 && strcmp(v2.arr, "foo") == 0);
+    CHECK_MSG("zv_rtrim misc", v2.len == 3 && strcmp(v2.arr, "foo") == 0,
+              "expected 'foo' len=3 got len=%u buf='%s'", v2.len, v2.arr);
 }
 
 /* Normal case conversion with preservation of terminator. */
@@ -298,9 +356,13 @@ static void test_case(void) {
     strcpy(v.arr, "aB3");
     v.len = 3;
     zv_upper(v);
-    CHECK("zv_upper", strcmp(v.arr, "AB3") == 0 && v.arr[3] == '\0');
+    CHECK_MSG("zv_upper", strcmp(v.arr, "AB3") == 0 && v.arr[3] == '\0',
+              "expected 'AB3' term=0 got buf='%s' term=0x%02x",
+              v.arr, (unsigned char)v.arr[3]);
     zv_lower(v);
-    CHECK("zv_lower", strcmp(v.arr, "ab3") == 0 && v.arr[3] == '\0');
+    CHECK_MSG("zv_lower", strcmp(v.arr, "ab3") == 0 && v.arr[3] == '\0',
+              "expected 'ab3' term=0 got buf='%s' term=0x%02x",
+              v.arr, (unsigned char)v.arr[3]);
 }
 
 /* Upper/lower should not modify an empty string. */
@@ -309,9 +371,11 @@ static void test_case_empty(void) {
     v.arr[0] = '\0';
     v.len = 0;
     zv_upper(v);
-    CHECK("zv_upper empty", v.len == 0 && v.arr[0] == '\0');
+    CHECK_MSG("zv_upper empty", v.len == 0 && v.arr[0] == '\0',
+              "expected len=0 got len=%u", v.len);
     zv_lower(v);
-    CHECK("zv_lower empty", v.len == 0 && v.arr[0] == '\0');
+    CHECK_MSG("zv_lower empty", v.len == 0 && v.arr[0] == '\0',
+              "expected len=0 got len=%u", v.len);
 }
 
 /* Non alphabetic characters should remain unaffected by case conversion. */
@@ -320,9 +384,11 @@ static void test_upper_lower_nonalpha(void) {
     strcpy(v.arr, "a1!B");
     v.len=4;
     zv_upper(v);
-    CHECK("zv_upper nonalpha", strcmp(v.arr,"A1!B") == 0);
+    CHECK_MSG("zv_upper nonalpha", strcmp(v.arr,"A1!B") == 0,
+              "expected 'A1!B' got '%s'", v.arr);
     zv_lower(v);
-    CHECK("zv_lower nonalpha", strcmp(v.arr,"a1!b") == 0);
+    CHECK_MSG("zv_lower nonalpha", strcmp(v.arr,"a1!b") == 0,
+              "expected 'a1!b' got '%s'", v.arr);
 }
 
 /*
@@ -337,11 +403,14 @@ static void test_mass_case(void) {
     v.len = N-1;
     zv_upper(v);
     for (size_t i = 0; i < N-1; i++)
-        if (v.arr[i] != 'A') { CHECK("zv_mass_upper", 0); break; }
+        if (v.arr[i] != 'A') { CHECK_MSG("zv_mass_upper", 0,
+                                         "first bad index %zu char %c", i, v.arr[i]); break; }
     zv_lower(v);
     for (size_t i = 0; i < N-1; i++)
-        if (v.arr[i] != 'a') { CHECK("zv_mass_lower", 0); break; }
-    CHECK("zv_mass_case term", v.arr[N-1] == '\0');
+        if (v.arr[i] != 'a') { CHECK_MSG("zv_mass_lower", 0,
+                                         "first bad index %zu char %c", i, v.arr[i]); break; }
+    CHECK_MSG("zv_mass_case term", v.arr[N-1] == '\0',
+              "expected terminator got 0x%02x", (unsigned char)v.arr[N-1]);
 }
 
 /* zv_strncpy copies with termination */
@@ -350,7 +419,9 @@ static void test_zv_strncpy(void) {
     strcpy(src.arr, "abcd");
     src.len = 4;
     int n = zv_strncpy(dst, src, 2);
-    CHECK("zv_strncpy", n == 2 && dst.len == 2 && strcmp(dst.arr, "ab") == 0);
+    CHECK_MSG("zv_strncpy", n == 2 && dst.len == 2 && strcmp(dst.arr, "ab") == 0,
+              "expected n=2 len=2 buf='ab' got n=%d len=%u buf='%s'",
+              n, dst.len, dst.arr);
 }
 
 static void test_zv_strncpy_overflow(void) {
@@ -359,8 +430,9 @@ static void test_zv_strncpy_overflow(void) {
     src.len = 4;
     int n = zv_strncpy(dst, src, 4);
     CHECK_MSG("zv_strncpy overflow",
-              n == 0 && dst.len == 0 && dst.arr[0] == '\0',
-              "n=%d len=%u first=0x%02x", n, dst.len, (unsigned char)dst.arr[0]);
+              n == 2 && dst.len == 2 && strcmp(dst.arr, "ab") == 0,
+              "expected truncation n=2 len=2 buf='ab' got n=%d len=%u buf='%s'",
+              n, dst.len, dst.arr);
 }
 
 /* Concatenate zvarchars */
@@ -369,7 +441,9 @@ static void test_zv_strcat(void) {
     strcpy(a.arr, "ab"); a.len = 2;
     strcpy(b.arr, "cd"); b.len = 2;
     int n = zv_strcat(a, b);
-    CHECK("zv_strcat", n == 2 && a.len == 4 && strcmp(a.arr, "abcd") == 0);
+    CHECK_MSG("zv_strcat", n == 2 && a.len == 4 && strcmp(a.arr, "abcd") == 0,
+              "expected append result n=2 len=4 buf='abcd' got n=%d len=%u buf='%s'",
+              n, a.len, a.arr);
 }
 
 static void test_zv_strcat_overflow(void) {
@@ -378,8 +452,9 @@ static void test_zv_strcat_overflow(void) {
     strcpy(b.arr, "cde"); b.len = 3;
     int n = zv_strcat(a, b);
     CHECK_MSG("zv_strcat overflow",
-              n == 0 && a.len == 0 && a.arr[0] == '\0',
-              "n=%d len=%u first=0x%02x", n, a.len, (unsigned char)a.arr[0]);
+              n == 1 && a.len == 3 && strcmp(a.arr, "abc") == 0,
+              "expected truncation to 'abc' len=3 got n=%d len=%u buf='%s'",
+              n, a.len, a.arr);
 }
 
 /* zv_strncat appends up to n chars */
@@ -388,7 +463,9 @@ static void test_zv_strncat(void) {
     strcpy(a.arr, "ab"); a.len = 2;
     memcpy(b.arr, "cdef", 4); b.len = 4;
     int n = zv_strncat(a, b, 2);
-    CHECK("zv_strncat", n == 2 && a.len == 4 && strcmp(a.arr, "abcd") == 0);
+    CHECK_MSG("zv_strncat", n == 2 && a.len == 4 && strcmp(a.arr, "abcd") == 0,
+              "expected n=2 len=4 buf='abcd' got n=%d len=%u buf='%s'",
+              n, a.len, a.arr);
 }
 
 static void test_zv_strncat_overflow(void) {
@@ -397,8 +474,9 @@ static void test_zv_strncat_overflow(void) {
     strcpy(b.arr, "cd"); b.len = 2;
     int n = zv_strncat(a, b, 2);
     CHECK_MSG("zv_strncat overflow",
-              n == 0 && a.len == 0 && a.arr[0] == '\0',
-              "n=%d len=%u first=0x%02x", n, a.len, (unsigned char)a.arr[0]);
+              n == 0 && a.len == 2 && strcmp(a.arr, "ab") == 0,
+              "expected no append len=2 buf='ab' got n=%d len=%u buf='%s'",
+              n, a.len, a.arr);
 }
 
 int main(int argc, char **argv) {
