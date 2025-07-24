@@ -19,6 +19,24 @@ static int verbose = 0;
 } while (0)
 
 /*
+ * CHECK_MSG() - Provide additional failure context.
+ * @name: Test name displayed on failure.
+ * @expr: Boolean expression indicating success.
+ * @fmt:  printf style format string used when @expr evaluates to false.
+ * @...: Values referenced by @fmt when reporting a failure.
+ */
+#define CHECK_MSG(name, expr, fmt, ...) do { \
+    if (!(expr)) { \
+        printf("\nFAIL: %s - " fmt "\n", name, ##__VA_ARGS__); \
+        failures++; \
+    } else if (verbose) { \
+        printf("PASS: %s\n", name); \
+    } else { \
+        fputc('.', stdout); fflush(stdout); \
+    } \
+} while (0)
+
+/*
  * Initialization helpers for zero-terminated VARCHARS should both clear the
  * length and write a terminator byte at position zero.
  */
@@ -340,7 +358,9 @@ static void test_zv_strncpy_overflow(void) {
     memcpy(src.arr, "abcd", 4);
     src.len = 4;
     int n = zv_strncpy(dst, src, 4);
-    CHECK("zv_strncpy overflow", n == 0 && dst.len == 0 && dst.arr[0] == '\0');
+    CHECK_MSG("zv_strncpy overflow",
+              n == 0 && dst.len == 0 && dst.arr[0] == '\0',
+              "n=%d len=%u first=0x%02x", n, dst.len, (unsigned char)dst.arr[0]);
 }
 
 /* Concatenate zvarchars */
@@ -357,7 +377,9 @@ static void test_zv_strcat_overflow(void) {
     strcpy(a.arr, "ab"); a.len = 2;
     strcpy(b.arr, "cde"); b.len = 3;
     int n = zv_strcat(a, b);
-    CHECK("zv_strcat overflow", n == 0 && a.len == 0 && a.arr[0] == '\0');
+    CHECK_MSG("zv_strcat overflow",
+              n == 0 && a.len == 0 && a.arr[0] == '\0',
+              "n=%d len=%u first=0x%02x", n, a.len, (unsigned char)a.arr[0]);
 }
 
 /* zv_strncat appends up to n chars */
@@ -374,7 +396,9 @@ static void test_zv_strncat_overflow(void) {
     strcpy(a.arr, "ab"); a.len = 2;
     strcpy(b.arr, "cd"); b.len = 2;
     int n = zv_strncat(a, b, 2);
-    CHECK("zv_strncat overflow", n == 0 && a.len == 0 && a.arr[0] == '\0');
+    CHECK_MSG("zv_strncat overflow",
+              n == 0 && a.len == 0 && a.arr[0] == '\0',
+              "n=%d len=%u first=0x%02x", n, a.len, (unsigned char)a.arr[0]);
 }
 
 int main(int argc, char **argv) {
