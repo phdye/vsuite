@@ -44,7 +44,7 @@
     do {                              \
         (v).len = 0;                  \
         if (V_SIZE(v) > 0)            \
-            V_BUF(v)[0] = '\0';      \
+            V_BUF(v)[0] = '\0';       \
     } while (0)
 
 /*
