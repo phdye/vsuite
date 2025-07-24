@@ -112,6 +112,64 @@ typedef VARCHAR(varchar_t, 1);
            0))
 
 /*
+ * v_strncpy() - Copy at most n characters from src to dest.
+ * @dest: Destination VARCHAR that receives the data.
+ * @src:  Source VARCHAR to copy from.
+ * @n:    Maximum number of characters to copy.
+ * Returns the number of characters copied, or 0 on overflow.
+ */
+#define v_strncpy(dest, src, n)                                            \
+    ({                                                                     \
+        size_t __n = (n);                                                  \
+        if (__n > (src).len)                                               \
+            __n = (src).len;                                               \
+        (__n <= V_SIZE(dest))                                              \
+            ? (memmove(V_BUF(dest), V_BUF(src), __n),                      \
+               (dest).len = __n,                                           \
+               (int)__n)                                                   \
+            : 0;                                                           \
+    })
+
+/*
+ * v_strcat() - Append src to dest.
+ * @dest: Destination VARCHAR that receives the data.
+ * @src:  Source VARCHAR to append.
+ *
+ * Appends the contents of `src` to `dest` maintaining the
+ * destination as a basic VARCHAR, without NUL termination.
+ *
+ * Returns the number of characters appended, or 0 on overflow.
+ */
+#define v_strcat(dest, src)                                                \
+    ({                                                                     \
+        size_t __avail = V_SIZE(dest) - (dest).len;                        \
+        size_t __n = (src).len;                                            \
+        (__n <= __avail)                                                   \
+            ? (memmove(V_BUF(dest) + (dest).len, V_BUF(src), __n),         \
+               (dest).len += __n,                                          \
+               (int)__n)                                                   \
+            : 0;                                                           \
+    })
+
+/*
+ * v_strncat() - Append at most n characters from src to dest.
+ *
+ * Returns the number of characters appended, or 0 on overflow.
+ */
+#define v_strncat(dest, src, n)                                             \
+    ({                                                                     \
+        size_t __n = (n);                                                  \
+        if (__n > (src).len)                                               \
+            __n = (src).len;                                               \
+        size_t __avail = V_SIZE(dest) - (dest).len;                        \
+        (__n <= __avail)                                                   \
+            ? (memmove(V_BUF(dest) + (dest).len, V_BUF(src), __n),         \
+               (dest).len += __n,                                          \
+               (int)__n)                                                   \
+               : 0;                                                        \
+    })
+
+#/*
  * v_ltrim() - Remove leading ASCII whitespace from a VARCHAR.
  *
  * Characters are shifted left in-place using ``memmove`` when leading

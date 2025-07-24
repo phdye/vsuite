@@ -326,6 +326,60 @@ static void test_helper_macros(void) {
     CHECK("varchar_buf_t", sizeof(varchar_buf_t) == 1);
 }
 
+/* v_strncpy copies up to n characters from src */
+static void test_v_strncpy(void) {
+    VARCHAR(src,6); VARCHAR(dst,6);
+    strcpy(src.arr, "abcd");
+    src.len = 4;
+    int n = v_strncpy(dst, src, 2);
+    CHECK("v_strncpy", n == 2 && dst.len == 2 && memcmp(dst.arr, "ab", 2) == 0);
+}
+
+/* Overflow during v_strncpy clears the destination */
+static void test_v_strncpy_overflow(void) {
+    VARCHAR(src,4); VARCHAR(dst,3);
+    memcpy(src.arr, "abcd", 4);
+    src.len = 4;
+    int n = v_strncpy(dst, src, 4);
+    CHECK("v_strncpy overflow", n == 0 && dst.len == 0);
+}
+
+/* v_strcat appends one VARCHAR to another */
+static void test_v_strcat(void) {
+    VARCHAR(a,6); VARCHAR(b,3);
+    strcpy(a.arr, "ab"); a.len = 2;
+    strcpy(b.arr, "cd"); b.len = 2;
+    int n = v_strcat(a, b);
+    CHECK("v_strcat", n == 2 && a.len == 4 && memcmp(a.arr, "abcd", 4) == 0);
+}
+
+/* Overflow while concatenating clears the destination */
+static void test_v_strcat_overflow(void) {
+    VARCHAR(a,4); VARCHAR(b,3);
+    strcpy(a.arr, "ab"); a.len = 2;
+    strcpy(b.arr, "cde"); b.len = 3;
+    int n = v_strcat(a, b);
+    CHECK("v_strcat overflow", n == 0 && a.len == 0);
+}
+
+/* v_strncat appends up to n characters */
+static void test_v_strncat(void) {
+    VARCHAR(a,6); VARCHAR(b,4);
+    memcpy(a.arr, "ab", 2); a.len = 2;
+    memcpy(b.arr, "cdef", 4); b.len = 4;
+    int n = v_strncat(a, b, 2);
+    CHECK("v_strncat", n == 2 && a.len == 4 && memcmp(a.arr, "abcd", 4) == 0);
+}
+
+/* v_strncat overflow clears the destination */
+static void test_v_strncat_overflow(void) {
+    VARCHAR(a,3); VARCHAR(b,3);
+    strcpy(a.arr, "ab"); a.len = 2;
+    strcpy(b.arr, "cd"); b.len = 2;
+    int n = v_strncat(a, b, 2);
+    CHECK("v_strncat overflow", n == 0 && a.len == 0);
+}
+
 int main(int argc, char **argv) {
     for (int i=1;i<argc;i++) if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose")) verbose = 1;
 
@@ -357,6 +411,14 @@ int main(int argc, char **argv) {
     test_v_sprintf_overflow();
     test_v_sprintf_exact();
     test_v_sprintf_large();
+
+    test_v_strncpy();
+    test_v_strncpy_overflow();
+    test_v_strcat();
+    test_v_strcat_overflow();
+    test_v_strncat();
+    test_v_strncat_overflow();
+
     test_helper_macros();
 
     if (failures == 0) {
