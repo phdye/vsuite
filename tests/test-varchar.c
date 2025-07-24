@@ -314,7 +314,8 @@ static void test_v_sprintf_overflow(void) {
     int n = v_sprintf(v, "value %d", 100); /* longer than 4 */
     CHECK_MSG("v_sprintf overflow",
               n == 3 && v.len == 3 && memcmp(v.arr, "val", 3) == 0,
-              "n=%d len=%u first=0x%02x", n, v.len, (unsigned char)v.arr[0]);
+              "expected return 3 and len 3 with \"val\" but got n=%d len=%u output \"%.*s\"",
+              n, v.len, v.len, v.arr);
 }
 
 /* Output equal to the buffer size is truncated by one byte. */
@@ -323,7 +324,8 @@ static void test_v_sprintf_exact(void) {
     int n = v_sprintf(v, "abcd");
     CHECK_MSG("v_sprintf exact",
               n == 3 && v.len == 3 && memcmp(v.arr, "abc", 3) == 0,
-              "n=%d len=%u first=0x%02x", n, v.len, (unsigned char)v.arr[0]);
+              "expected return 3 and len 3 with \"abc\" but got n=%d len=%u output \"%.*s\"",
+              n, v.len, v.len, v.arr);
 }
 
 /* Large formatting operations truncate by one byte as well. */
@@ -336,7 +338,8 @@ static void test_v_sprintf_large(void) {
     int n = v_sprintf(v, "%s", src);
     int ok = (n == N - 1 && v.len == N - 1 && memcmp(v.arr, src, N - 1) == 0);
     CHECK_MSG("v_sprintf large", ok,
-              "n=%d len=%u first=0x%02x", n, v.len, (unsigned char)v.arr[0]);
+              "expected return %d and len %d but got n=%d len=%u first byte 0x%02x",
+              N - 1, N - 1, n, v.len, (unsigned char)v.arr[0]);
 }
 
 /*
@@ -374,7 +377,8 @@ static void test_v_strncpy_overflow(void) {
     int n = v_strncpy(dst, src, 4);
     CHECK_MSG("v_strncpy overflow",
               n == 3 && memcmp(dst.arr, "abc", 3) == 0 && dst.len == 1,
-              "n=%d len=%u first=0x%02x", n, dst.len, (unsigned char)dst.arr[0]);
+              "expected return 3 with \"abc\" and len 1 but got n=%d len=%u first byte 0x%02x",
+              n, dst.len, (unsigned char)dst.arr[0]);
 }
 
 /* v_strcat appends one VARCHAR to another */
@@ -394,7 +398,8 @@ static void test_v_strcat_overflow(void) {
     int n = v_strcat(a, b);
     CHECK_MSG("v_strcat overflow",
               n == 2 && a.len == 4 && memcmp(a.arr, "abcd", 4) == 0,
-              "n=%d len=%u first=0x%02x", n, a.len, (unsigned char)a.arr[0]);
+              "expected return 2 and len 4 with \"abcd\" but got n=%d len=%u first byte 0x%02x",
+              n, a.len, (unsigned char)a.arr[0]);
 }
 
 /* v_strncat appends up to n characters */
@@ -414,7 +419,8 @@ static void test_v_strncat_overflow(void) {
     int n = v_strncat(a, b, 2);
     CHECK_MSG("v_strncat overflow",
               n == 1 && a.len == 3 && memcmp(a.arr, "abc", 3) == 0,
-              "n=%d len=%u first=0x%02x", n, a.len, (unsigned char)a.arr[0]);
+              "expected return 1 and len 3 with \"abc\" but got n=%d len=%u first byte 0x%02x",
+              n, a.len, (unsigned char)a.arr[0]);
 }
 
 int main(int argc, char **argv) {
