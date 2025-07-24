@@ -7,6 +7,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#ifndef V_WARN
+#define V_WARN(fmt, ...) /* */
+#endif
+
 /**
  * VARCHAR() - Declare a fixed-size Oracle style VARCHAR structure.
  * @name: name of the variable to declare.
@@ -79,7 +83,7 @@ typedef VARCHAR(varchar_t, 1);
  * v_init() - Reset a VARCHAR to an empty state.
  * @v: VARCHAR variable to modify.
  */
-#define v_init(v) ((v).len = 0)
+#define v_init(v) (((v).len = 0) || memset(V_BUF(v), '\0', V_SIZE(v)))
 
 /*
  * v_valid() - Validate that @v.len does not exceed the buffer size.
@@ -89,7 +93,7 @@ typedef VARCHAR(varchar_t, 1);
 /*
  * v_clear() - Alias for v_init(); provided for readability.
  */
-#define v_clear(v) ((v).len = 0)
+#define v_clear(v) v_init(v)
 
 /*
  * v_copy() - Copy one VARCHAR into another.
@@ -103,7 +107,7 @@ typedef VARCHAR(varchar_t, 1);
  */
 #define v_copy(dest, src)                                                      \
     ((V_SIZE(dest) >= (src).len)                                               \
-        ? ( /* sufficient space */                                            \
+        ? ( /* sufficient space */                                             \
            memmove(V_BUF(dest), V_BUF(src), (src).len),                        \
            (dest).len = (src).len,                                             \
            (src).len)                                                          \
@@ -230,26 +234,52 @@ typedef VARCHAR(varchar_t, 1);
  * characters written is returned.  On overflow or formatting error ``v.len`` is
  * cleared to zero and ``0`` is returned.
  */
+#define V_SPRINTF_OVERFLOW_EMPTY 0
+#define V_SPRINTF_OVERFLOW_TRUNCATE 1
 static inline int v_sprintf_fcn(char *dst_buf, unsigned short capacity,
-                                unsigned short *dst_len, const char *fmt, ...)
+                                unsigned short *dst_len, unsigned *overflow, const char *fmt, ...)
 {
+    *overflow = 0;
+
+    if (capacity <= 0) { // Without capacity, there is nothing to do.
+        return -1;
+    }
+
     va_list ap;
-    char tmp[capacity + 1];
+    char tmp[65536]; // 64 KB
+
     va_start(ap, fmt);
-    int n = vsnprintf(tmp, sizeof tmp, fmt, ap);
+    int n = vsnprintf(tmp, sizeof(tmp), fmt, ap);
     va_end(ap);
 
-    if (n >= 0 && (unsigned)n <= capacity) {
-        memcpy(dst_buf, tmp, (size_t)n);
-        *dst_len = (unsigned short) n - 1; // VARCHAR length does not include zero-byte terminator
+    if (n < 0) { // On error, do nothing but ensure destination is an empty string
+        if (capacity ) {
+            *dst_buf = '\0';
+        }
         return n;
     }
 
-    *dst_len = 0;
-    return 0;
+    if (n > capacity) {
+        *overflow = n - capacity;
+        n = capacity;
+        tmp[n-1] = '\0';
+    }
+
+    memcpy(dst_buf, tmp, (size_t) n);
+    *dst_len = (unsigned short) n - 1; // VARCHAR length does not include zero-byte terminator
+    return n;
 }
 
 #define v_sprintf(v, fmt, ...) \
-    v_sprintf_fcn(V_BUF(v), V_SIZE(v), &(v).len, fmt, ##__VA_ARGS__)
+    ({ \
+        unsigned capacity = V_SIZE(v); \
+        unsigned overflow = 0; \
+        int n = v_sprintf_fcn(V_BUF(v), capacity, &(v).len, &overflow, fmt, ##__VA_ARGS__); \
+        if (overflow > 0) { \
+            V_WARN("Line %d : v_sprintf(%s, fmt, ...) : overflow : bytes required %u > %u capacity : fmt = \"%s\"", \
+                __LINE__, overflow+capacity, capacity, fmt); \
+        } \
+        n; \
+    })
 
 #endif /* VARCHAR_MACROS_V_H */
