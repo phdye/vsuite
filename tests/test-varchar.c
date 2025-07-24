@@ -19,6 +19,24 @@ static int verbose = 0;
 } while (0)
 
 /*
+ * CHECK_MSG() - Provide additional failure context.
+ * @name: Test name displayed on failure.
+ * @expr: Boolean expression indicating success.
+ * @fmt:  printf style format string used when @expr evaluates to false.
+ * @...: Values referenced by @fmt when reporting a failure.
+ */
+#define CHECK_MSG(name, expr, fmt, ...) do { \
+    if (!(expr)) { \
+        printf("\nFAIL: %s - " fmt "\n", name, ##__VA_ARGS__); \
+        failures++; \
+    } else if (verbose) { \
+        printf("PASS: %s\n", name); \
+    } else { \
+        fputc('.', stdout); fflush(stdout); \
+    } \
+} while (0)
+
+/*
  * Test the basic initialization helpers. v_init() and v_clear() should both
  * reset the length to zero regardless of the prior contents of the buffer.
  */
@@ -294,14 +312,18 @@ static void test_v_sprintf_basic(void) {
 static void test_v_sprintf_overflow(void) {
     VARCHAR(v, 4);
     int n = v_sprintf(v, "value %d", 100); /* longer than 4 */
-    CHECK("v_sprintf overflow", n == 3 && v.len == 3 && memcmp(v.arr, "val", 3) == 0);
+    CHECK_MSG("v_sprintf overflow",
+              n == 3 && v.len == 3 && memcmp(v.arr, "val", 3) == 0,
+              "n=%d len=%u first=0x%02x", n, v.len, (unsigned char)v.arr[0]);
 }
 
 /* Output equal to the buffer size is truncated by one byte. */
 static void test_v_sprintf_exact(void) {
     VARCHAR(v, 4);
     int n = v_sprintf(v, "abcd");
-    CHECK("v_sprintf exact", n == 3 && v.len == 3 && memcmp(v.arr, "abc", 3) == 0);
+    CHECK_MSG("v_sprintf exact",
+              n == 3 && v.len == 3 && memcmp(v.arr, "abc", 3) == 0,
+              "n=%d len=%u first=0x%02x", n, v.len, (unsigned char)v.arr[0]);
 }
 
 /* Large formatting operations truncate by one byte as well. */
@@ -313,7 +335,8 @@ static void test_v_sprintf_large(void) {
     VARCHAR(v, N);
     int n = v_sprintf(v, "%s", src);
     int ok = (n == N - 1 && v.len == N - 1 && memcmp(v.arr, src, N - 1) == 0);
-    CHECK("v_sprintf large", ok);
+    CHECK_MSG("v_sprintf large", ok,
+              "n=%d len=%u first=0x%02x", n, v.len, (unsigned char)v.arr[0]);
 }
 
 /*
@@ -349,7 +372,9 @@ static void test_v_strncpy_overflow(void) {
     src.len = 4;
     dst.len = 1;
     int n = v_strncpy(dst, src, 4);
-    CHECK("v_strncpy overflow", n == 3 && memcmp(dst.arr, "abc", 3) == 0 && dst.len == 1);
+    CHECK_MSG("v_strncpy overflow",
+              n == 3 && memcmp(dst.arr, "abc", 3) == 0 && dst.len == 1,
+              "n=%d len=%u first=0x%02x", n, dst.len, (unsigned char)dst.arr[0]);
 }
 
 /* v_strcat appends one VARCHAR to another */
@@ -367,7 +392,9 @@ static void test_v_strcat_overflow(void) {
     strcpy(a.arr, "ab"); a.len = 2;
     strcpy(b.arr, "cde"); b.len = 3;
     int n = v_strcat(a, b);
-    CHECK("v_strcat overflow", n == 2 && a.len == 4 && memcmp(a.arr, "abcd", 4) == 0);
+    CHECK_MSG("v_strcat overflow",
+              n == 2 && a.len == 4 && memcmp(a.arr, "abcd", 4) == 0,
+              "n=%d len=%u first=0x%02x", n, a.len, (unsigned char)a.arr[0]);
 }
 
 /* v_strncat appends up to n characters */
@@ -385,7 +412,9 @@ static void test_v_strncat_overflow(void) {
     strcpy(a.arr, "ab"); a.len = 2;
     strcpy(b.arr, "cd"); b.len = 2;
     int n = v_strncat(a, b, 2);
-    CHECK("v_strncat overflow", n == 1 && a.len == 3 && memcmp(a.arr, "abc", 3) == 0);
+    CHECK_MSG("v_strncat overflow",
+              n == 1 && a.len == 3 && memcmp(a.arr, "abc", 3) == 0,
+              "n=%d len=%u first=0x%02x", n, a.len, (unsigned char)a.arr[0]);
 }
 
 int main(int argc, char **argv) {
