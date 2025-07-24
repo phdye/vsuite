@@ -263,7 +263,7 @@ def replace_v_copy_1(text, base=0, show=None):
             line = base + text.count("\n", 0, m.start()) + 1
             show("v_copy_1", line, m.group(0))
     return pattern.sub(
-        lambda m: "%sv_copy(%s, %s);" % (m.group('indent'), m.group('dst'), m.group('src')),
+        lambda m: "%sVARCHAR_zv_copy(%s, %s);" % (m.group('indent'), m.group('dst'), m.group('src')),
         text,
     )
 
@@ -285,7 +285,7 @@ def replace_v_copy_2(text, base=0, show=None):
             line = base + text.count("\n", 0, m.start()) + 1
             show("v_copy_2", line, m.group(0))
     return pattern.sub(
-        lambda m: "%sv_copy(%s, %s);" % (m.group('indent'), m.group('dst'), m.group('src')),
+        lambda m: "%sVARCHAR_zv_copy(%s, %s);" % (m.group('indent'), m.group('dst'), m.group('src')),
         text,
     )
 
@@ -306,9 +306,9 @@ def replace_vp_copy(text, base=0, show=None):
     if show:
         for m in pattern.finditer(text):
             line = base + text.count("\n", 0, m.start()) + 1
-            show("vp_copy", line, m.group(0))
+            show("zvp_copy", line, m.group(0))
     return pattern.sub(
-        lambda m: "%svp_copy(%s, \"%s\");" % (m.group('indent'), m.group('foo'), m.group('lit')),
+        lambda m: "%sVARCHAR_zvp_copy(%s, \"%s\");" % (m.group('indent'), m.group('foo'), m.group('lit')),
         text,
     )
 
@@ -321,7 +321,7 @@ def replace_v_sprintf(text, base=0, show=None):
     """
 
     pattern = re.compile(
-        r"(?P<indent>^[ \t]*)sprintf\(\s*(?P<foo>" + _VAR +
+        r"(?P<indent>^[ \t]*)sprintf\(\s*(?:\(char\*\))?\s*(?P<foo>" + _VAR +
         r")\.arr,\s*(?P<args>[^;]*?)\)\s*;",
         re.MULTILINE,
     )
