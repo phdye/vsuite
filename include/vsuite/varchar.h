@@ -66,7 +66,8 @@ typedef VARCHAR(varchar_t, 1);
  * v_unused_capacity() - Return number of unused bytes
  * @v:  VARCHAR variable being queried.
  *
- * Returns the number of remaining bytes available
+ * Returns the number of remaining bytes available.  When ``v.len`` already
+ * exceeds the declared size the result is clamped to zero.
  */
 #define v_unused_capacity(v) \
     ((v.len) > V_SIZE(v) ? 0 : (V_SIZE(v) - (v).len))
@@ -76,7 +77,8 @@ typedef VARCHAR(varchar_t, 1);
  * @v:  VARCHAR variable being queried.
  * @N:  Number of characters to check for.
  *
- * Returns true when the destination buffer has at least @N bytes of unused space.
+ * Returns true when the destination buffer has at least ``N`` bytes of unused
+ * space.  Overflowed lengths are treated as having zero free space.
  */
 #define v_has_unused_capacity(v,N) \
     ((N) <= v_unused_capacity(v))
@@ -84,6 +86,9 @@ typedef VARCHAR(varchar_t, 1);
 /*
  * v_init() - Reset a VARCHAR to an empty state.
  * @v: VARCHAR variable to modify.
+ *
+ * Sets ``len`` to zero and fills the underlying buffer with ``'\0'``
+ * bytes to ensure any previous contents are cleared.
  */
 #define v_init(v) do { ((v).len = 0) ; memset(V_BUF(v), '\0', V_SIZE(v)) ; } while(0)
 
@@ -102,10 +107,10 @@ typedef VARCHAR(varchar_t, 1);
  * @dest: Destination VARCHAR that receives the data.
  * @src:  Source VARCHAR to copy from.
  *
- * The copy only succeeds when @dest has enough capacity for ``src.len`` bytes.
- * On success the bytes are copied with ``memmove`` and the destination length
- * is updated.  The number of bytes copied is returned.  If the destination is
- * too small, ``dest.len`` is cleared to zero and ``0`` is returned.
+ * Copies ``src`` into ``dest`` truncating when the destination buffer is
+ * smaller than ``src.len``.  The destination ``len`` field is **not** modified.
+ * The number of bytes moved (after truncation) is returned and any overflow is
+ * recorded in ``varchar_overflow``.
  */
 #define v_copy(dest, src)                                                  \
     ({                                                                     \
@@ -127,9 +132,10 @@ typedef VARCHAR(varchar_t, 1);
  * @src:  Source VARCHAR to copy from.
  * @n:    Maximum number of characters to copy.
  * 
- * Truncates on overflow.
- *
- * Returns the number of characters copied.
+ * Copies up to ``n`` characters from ``src`` into ``dest``.  If the requested
+ * length exceeds the destination capacity the copy is truncated and the number
+ * of bytes moved is returned.  ``dest.len`` remains unchanged and overflow is
+ * reported via ``varchar_overflow``.
  */
 #define v_strncpy(dest, src, n)                                            \
     ({                                                                     \
@@ -144,7 +150,7 @@ typedef VARCHAR(varchar_t, 1);
             __n = V_SIZE(dest);                                            \
         }                                                                  \
         memmove(V_BUF(dest), V_BUF(src), __n);                             \
-        __n;
+        __n;\
     })
 
 /*
@@ -152,10 +158,10 @@ typedef VARCHAR(varchar_t, 1);
  * @dest: Destination VARCHAR that receives the data.
  * @src:  Source VARCHAR to append.
  *
- * Appends the contents of `src` to `dest` maintaining the
- * destination as a basic VARCHAR, without NUL termination.
- *
- * Returns the number of characters appended, or 0 on overflow.
+ * Appends ``src`` to ``dest`` without NUL termination.  When ``dest`` does not
+ * have enough unused space only the portion that fits is appended.  The
+ * resulting ``len`` is increased by the number of bytes appended and that value
+ * is returned.  Overflow information is stored in ``varchar_overflow``.
  */
 #define v_strcat(dest, src)                                        \
     ({                                                             \
@@ -176,7 +182,10 @@ typedef VARCHAR(varchar_t, 1);
 /*
  * v_strncat() - Append at most n characters from src to dest.
  *
- * Returns the number of characters appended, or 0 on overflow.
+ * Concatenates up to ``n`` bytes from ``src``.  When space is insufficient the
+ * data is truncated and only the part that fits is appended.  The destination
+ * length increases by the number of bytes appended which is also returned.  Any
+ * truncation is noted in ``varchar_overflow``.
  */
 #define v_strncat(dest, src, n)                                    \
     ({                                                             \
@@ -214,6 +223,9 @@ typedef VARCHAR(varchar_t, 1);
 
 /*
  * v_rtrim() - Strip trailing ASCII whitespace from a VARCHAR.
+ *
+ * The length is decremented while whitespace characters are found at the end
+ * of the buffer.  Content is left in place; only ``len`` changes.
  */
 #define v_rtrim(v) do {                                            \
     while ((v).len > 0 &&                                          \
@@ -224,12 +236,17 @@ typedef VARCHAR(varchar_t, 1);
 
 /*
  * v_trim() - Convenience wrapper to run both v_rtrim() and v_ltrim().
+ *
+ * Leading and trailing whitespace are removed as described by the individual
+ * helpers.
  */
 #define v_trim(v)  \
     do { v_rtrim(v); v_ltrim(v); } while (0)
 
 /*
  * v_upper() - In-place ASCII uppercase conversion.
+ *
+ * Each byte is converted with ``toupper`` using unsigned char promotion.
  */
 #define v_upper(v) do {                                  \
     for (size_t i = 0; i < (v).len; i++)                 \
@@ -238,6 +255,8 @@ typedef VARCHAR(varchar_t, 1);
 
 /*
  * v_lower() - In-place ASCII lowercase conversion.
+ *
+ * Like ``v_upper`` but using ``tolower``.
  */
 
 #define v_lower(v) do {                                  \
@@ -251,11 +270,14 @@ typedef VARCHAR(varchar_t, 1);
  * @fmt: ``printf`` style format string.
  * @...: Arguments consumed according to @fmt.
  *
- * The macro formats into a temporary buffer sized one byte larger than the
- * destination so that ``vsnprintf`` can NUL terminate the result.  When the
- * formatted string fits, the bytes are copied into ``v`` and the number of
- * characters written is returned.  On overflow or formatting error ``v.len`` is
- * cleared to zero and ``0`` is returned.
+ * The macro writes formatted output directly into the destination buffer.  The
+ * underlying ``vsnprintf`` call always receives the full capacity of ``v`` so
+ * a trailing NUL byte is produced.  The returned value excludes this
+ * terminator and represents the number of bytes stored in ``v``.  If the
+ * formatted data exceeds the capacity it is truncated, ``varchar_overflow`` is
+ * set and ``v.len`` is updated to the truncated size.  A formatting error
+ * results in ``v`` becoming an empty string and the negative error code is
+ * propagated.
  */
 static inline int v_sprintf_fcn(char *dst_buf, unsigned short capacity,
                                 unsigned short *dst_len, const char *fmt, ...) {
