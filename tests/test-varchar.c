@@ -19,6 +19,24 @@ static int verbose = 0;
 } while (0)
 
 /*
+ * CHECK_MSG() - Provide additional failure context.
+ * @name: Test name displayed on failure.
+ * @expr: Boolean expression indicating success.
+ * @fmt:  printf style format string used when @expr evaluates to false.
+ * @...: Values referenced by @fmt when reporting a failure.
+ */
+#define CHECK_MSG(name, expr, fmt, ...) do { \
+    if (!(expr)) { \
+        printf("\nFAIL: %s - " fmt "\n", name, ##__VA_ARGS__); \
+        failures++; \
+    } else if (verbose) { \
+        printf("PASS: %s\n", name); \
+    } else { \
+        fputc('.', stdout); fflush(stdout); \
+    } \
+} while (0)
+
+/*
  * Test the basic initialization helpers. v_init() and v_clear() should both
  * reset the length to zero regardless of the prior contents of the buffer.
  */
@@ -27,11 +45,13 @@ static void test_init_clear(void) {
     memset(v.arr, 'x', sizeof(v.arr));
     v.len = 3;
     v_init(v);
-    CHECK("v_init", v.len == 0);
+    CHECK_MSG("v_init", v.len == 0,
+              "expected len 0 but got %u", v.len);
 
     v.len = 4;
     v_clear(v);
-    CHECK("v_clear", v.len == 0);
+    CHECK_MSG("v_clear", v.len == 0,
+              "expected len 0 but got %u", v.len);
 }
 
 /*
@@ -41,19 +61,25 @@ static void test_init_clear(void) {
 static void test_valid(void) {
     VARCHAR(v, 5);
     v.len = 5;
-    CHECK("v_valid ok", v_valid(v));           /* exact boundary */
+    CHECK_MSG("v_valid ok", v_valid(v),
+              "len=%u cap=%zu result=%d", v.len, V_SIZE(v), v_valid(v));
     v.len = 6;
-    CHECK("v_valid overflow", !v_valid(v));    /* length exceeds capacity */
+    CHECK_MSG("v_valid overflow", !v_valid(v),
+              "len=%u cap=%zu result=%d", v.len, V_SIZE(v), v_valid(v));
 }
 
 /* v_has_capacity() checks the declared size of the VARCHAR. */
 static void test_has_capacity(void) {
     VARCHAR(v, 5);
     v.len = 3;                      /* length does not affect test */
-    CHECK("v_has_capacity ok", v_has_capacity(v, 4));      /* within size */
-    CHECK("v_has_capacity full", v_has_capacity(v, 3));    /* also fits */
-    CHECK("v_has_capacity big", !v_has_capacity(v, 6));    /* beyond size */
-    CHECK("v_has_capacity max", v_has_capacity(v, 5));     /* exactly size */
+    CHECK_MSG("v_has_capacity ok", v_has_capacity(v, 4),
+              "N=4 cap=%zu result=%d", V_SIZE(v), v_has_capacity(v,4));
+    CHECK_MSG("v_has_capacity full", v_has_capacity(v, 3),
+              "N=3 cap=%zu result=%d", V_SIZE(v), v_has_capacity(v,3));
+    CHECK_MSG("v_has_capacity big", !v_has_capacity(v, 6),
+              "N=6 cap=%zu result=%d", V_SIZE(v), v_has_capacity(v,6));
+    CHECK_MSG("v_has_capacity max", v_has_capacity(v, 5),
+              "N=5 cap=%zu result=%d", V_SIZE(v), v_has_capacity(v,5));
 }
 
 /*
@@ -63,11 +89,14 @@ static void test_has_capacity(void) {
 static void test_unused_capacity(void) {
     VARCHAR(v, 5);
     v.len = 2;
-    CHECK("v_unused_capacity", v_unused_capacity(v) == 3);
+    CHECK_MSG("v_unused_capacity", v_unused_capacity(v) == 3,
+              "len=%u cap=%zu got %d", v.len, V_SIZE(v), v_unused_capacity(v));
     v.len = 5;
-    CHECK("v_unused_capacity zero", v_unused_capacity(v) == 0);
+    CHECK_MSG("v_unused_capacity zero", v_unused_capacity(v) == 0,
+              "len=%u cap=%zu got %d", v.len, V_SIZE(v), v_unused_capacity(v));
     v.len = 6;
-    CHECK("v_unused_capacity overflow", v_unused_capacity(v) == 0);
+    CHECK_MSG("v_unused_capacity overflow", v_unused_capacity(v) == 0,
+              "len=%u cap=%zu got %d", v.len, V_SIZE(v), v_unused_capacity(v));
 }
 
 /*
@@ -78,12 +107,20 @@ static void test_unused_capacity(void) {
 static void test_has_unused_capacity(void) {
     VARCHAR(v, 5);
     v.len = 2;
-    CHECK("v_has_unused ok", v_has_unused_capacity(v, 3));
-    CHECK("v_has_unused none", !v_has_unused_capacity(v, 4));
+    CHECK_MSG("v_has_unused ok", v_has_unused_capacity(v, 3),
+              "len=%u unused=%d check=3 result=%d", v.len,
+              v_unused_capacity(v), v_has_unused_capacity(v,3));
+    CHECK_MSG("v_has_unused none", !v_has_unused_capacity(v, 4),
+              "len=%u unused=%d check=4 result=%d", v.len,
+              v_unused_capacity(v), v_has_unused_capacity(v,4));
     v.len = 5;
-    CHECK("v_has_unused full", !v_has_unused_capacity(v, 1));
+    CHECK_MSG("v_has_unused full", !v_has_unused_capacity(v, 1),
+              "len=%u unused=%d check=1 result=%d", v.len,
+              v_unused_capacity(v), v_has_unused_capacity(v,1));
     v.len = 7;
-    CHECK("v_has_unused overflow", !v_has_unused_capacity(v, 1));
+    CHECK_MSG("v_has_unused overflow", !v_has_unused_capacity(v, 1),
+              "len=%u cap=%zu unused=%d check=1 result=%d", v.len, V_SIZE(v),
+              v_unused_capacity(v), v_has_unused_capacity(v,1));
 }
 
 /*
@@ -97,10 +134,14 @@ static void test_copy(void) {
     src.len = 3;
     dst.len = 0; small.len = 0; dst.arr[0]=small.arr[0]='\0';
     int n = v_copy(dst, src);
-    CHECK("v_copy len", n == 3 && memcmp(dst.arr, "abc", 3) == 0 && dst.len == 0);
+    CHECK_MSG("v_copy len", n == 3 && memcmp(dst.arr, "abc", 3) == 0 && dst.len == 0,
+              "expected n=3 len=0 buf='abc' got n=%d len=%u buf='%.*s'",
+              n, dst.len, 3, dst.arr);
 
     n = v_copy(small, src);
-    CHECK("v_copy trunc", n == 2 && memcmp(small.arr, "ab", 2) == 0 && small.len == 0);
+    CHECK_MSG("v_copy trunc", n == 2 && memcmp(small.arr, "ab", 2) == 0 && small.len == 0,
+              "expected n=2 len=0 buf='ab' got n=%d len=%u buf='%.*s'",
+              n, small.len, 2, small.arr);
 }
 
 /* Copy that exactly fills the destination buffer. */
@@ -110,7 +151,9 @@ static void test_copy_exact(void) {
     src.len = 3;
     dst.len = 1;
     int n = v_copy(dst, src);
-    CHECK("v_copy exact", n == 3 && memcmp(dst.arr, "abc", 3) == 0 && dst.len == 1);
+    CHECK_MSG("v_copy exact", n == 3 && memcmp(dst.arr, "abc", 3) == 0 && dst.len == 1,
+              "expected n=3 len=1 buf='abc' got n=%d len=%u buf='%.*s'",
+              n, dst.len, 3, dst.arr);
 }
 
 /* Copying an empty source should leave the destination empty as well. */
@@ -119,7 +162,8 @@ static void test_copy_empty(void) {
     src.len = 0;
     dst.len = 5;
     int n = v_copy(dst, src);
-    CHECK("v_copy empty", n == 0 && dst.len == 5);
+    CHECK_MSG("v_copy empty", n == 0 && dst.len == 5,
+              "expected n=0 len=5 got n=%d len=%u", n, dst.len);
 }
 
 /* Ensure copying onto itself behaves as a no-op. */
@@ -128,7 +172,9 @@ static void test_copy_self(void) {
     strcpy(v.arr, "abc");
     v.len = 3;
     int n = v_copy(v, v);
-    CHECK("v_copy self", n == 3 && v.len == 3 && memcmp(v.arr, "abc", 3) == 0);
+    CHECK_MSG("v_copy self", n == 3 && v.len == 3 && memcmp(v.arr, "abc", 3) == 0,
+              "expected n=3 len=3 buf='abc' got n=%d len=%u buf='%.*s'",
+              n, v.len, 3, v.arr);
 }
 
 /* Copying into a destination of size 1 must fail since no character fits. */
@@ -138,7 +184,9 @@ static void test_copy_dest_size_one(void) {
     src.len = 2;
     dst.len = 7;
     int n = v_copy(dst, src);
-    CHECK("v_copy tiny", n == 1 && memcmp(dst.arr, "a", 1) == 0 && dst.len == 7);
+    CHECK_MSG("v_copy tiny", n == 1 && memcmp(dst.arr, "a", 1) == 0 && dst.len == 7,
+              "expected n=1 len=7 buf='a' got n=%d len=%u buf='%.*s'",
+              n, dst.len, 1, dst.arr);
 }
 
 /* Copy a very large string to ensure no size assumptions break. */
@@ -149,7 +197,9 @@ static void test_large_copy(void) {
     src.len = N;
     dst.len = 42;
     int n = v_copy(dst, src);
-    CHECK("v_copy large", n == N && memcmp(dst.arr, src.arr, N) == 0 && dst.len == 42);
+    CHECK_MSG("v_copy large", n == N && memcmp(dst.arr, src.arr, N) == 0 && dst.len == 42,
+              "expected n=%d len=42 first=%c got n=%d len=%u first=%c",
+              N, src.arr[0], n, dst.len, dst.arr[0]);
 }
 
 /*
@@ -163,7 +213,9 @@ static void test_extreme_copy(void) {
     src.len = N;
     dst.len = 0;
     int n = v_copy(dst, src);
-    CHECK("v_copy extreme", n == N && memcmp(dst.arr, src.arr, N) == 0 && dst.len == 0);
+    CHECK_MSG("v_copy extreme", n == N && memcmp(dst.arr, src.arr, N) == 0 && dst.len == 0,
+              "expected n=%d len=0 first=%c got n=%d len=%u first=%c",
+              N, src.arr[0], n, dst.len, dst.arr[0]);
 }
 
 /* Verify left, right and full trimming of whitespace. */
@@ -172,17 +224,20 @@ static void test_trim(void) {
     strcpy(v1.arr, "  hi");
     v1.len = 4;
     v_ltrim(v1);
-    CHECK("v_ltrim", v1.len == 2 && memcmp(v1.arr, "hi", 2) == 0);
+    CHECK_MSG("v_ltrim", v1.len == 2 && memcmp(v1.arr, "hi", 2) == 0,
+              "len=%u buf='%.*s'", v1.len, v1.len, v1.arr);
 
     strcpy(v2.arr, "hi  ");
     v2.len = 4;
     v_rtrim(v2);
-    CHECK("v_rtrim", v2.len == 2 && memcmp(v2.arr, "hi", 2) == 0);
+    CHECK_MSG("v_rtrim", v2.len == 2 && memcmp(v2.arr, "hi", 2) == 0,
+              "len=%u buf='%.*s'", v2.len, v2.len, v2.arr);
 
     strcpy(v3.arr, "  hi  ");
     v3.len = 6;
     v_trim(v3);
-    CHECK("v_trim", v3.len == 2 && memcmp(v3.arr, "hi", 2) == 0);
+    CHECK_MSG("v_trim", v3.len == 2 && memcmp(v3.arr, "hi", 2) == 0,
+              "len=%u buf='%.*s'", v3.len, v3.len, v3.arr);
 }
 
 /* Trimming should not modify an already trimmed string. */
@@ -191,11 +246,14 @@ static void test_trim_noop(void) {
     strcpy(v.arr, "hi");
     v.len = 2;
     v_ltrim(v);
-    CHECK("v_ltrim no-op", v.len == 2 && memcmp(v.arr, "hi", 2) == 0);
+    CHECK_MSG("v_ltrim no-op", v.len == 2 && memcmp(v.arr, "hi", 2) == 0,
+              "len=%u buf='%.*s'", v.len, v.len, v.arr);
     v_rtrim(v);
-    CHECK("v_rtrim no-op", v.len == 2 && memcmp(v.arr, "hi", 2) == 0);
+    CHECK_MSG("v_rtrim no-op", v.len == 2 && memcmp(v.arr, "hi", 2) == 0,
+              "len=%u buf='%.*s'", v.len, v.len, v.arr);
     v_trim(v);
-    CHECK("v_trim no-op", v.len == 2 && memcmp(v.arr, "hi", 2) == 0);
+    CHECK_MSG("v_trim no-op", v.len == 2 && memcmp(v.arr, "hi", 2) == 0,
+              "len=%u buf='%.*s'", v.len, v.len, v.arr);
 }
 
 /* Trimming a string of only spaces should result in an empty VARCHAR. */
@@ -204,7 +262,8 @@ static void test_trim_all_spaces(void) {
     strcpy(v.arr, "   ");
     v.len = 3;
     v_trim(v);
-    CHECK("v_trim all", v.len == 0);
+    CHECK_MSG("v_trim all", v.len == 0,
+              "len=%u", v.len);
 }
 
 /* Ensure trimming functions handle an already empty string. */
@@ -212,11 +271,11 @@ static void test_trim_empty(void) {
     VARCHAR(v, 5);
     v.len = 0;
     v_ltrim(v);
-    CHECK("v_ltrim empty", v.len == 0);
+    CHECK_MSG("v_ltrim empty", v.len == 0, "len=%u", v.len);
     v_rtrim(v);
-    CHECK("v_rtrim empty", v.len == 0);
+    CHECK_MSG("v_rtrim empty", v.len == 0, "len=%u", v.len);
     v_trim(v);
-    CHECK("v_trim empty", v.len == 0);
+    CHECK_MSG("v_trim empty", v.len == 0, "len=%u", v.len);
 }
 
 /* Trimming also removes other whitespace characters such as tabs/newlines. */
@@ -225,12 +284,14 @@ static void test_trim_tabs_newlines(void) {
     strcpy(v1.arr, "\thi\n");
     v1.len = 4;
     v_ltrim(v1);
-    CHECK("v_ltrim misc", v1.len == 3 && memcmp(v1.arr, "hi\n", 3) == 0);
+    CHECK_MSG("v_ltrim misc", v1.len == 3 && memcmp(v1.arr, "hi\n", 3) == 0,
+              "len=%u buf='%.*s'", v1.len, v1.len, v1.arr);
 
     strcpy(v2.arr, "hi\t\n");
     v2.len = 4;
     v_rtrim(v2);
-    CHECK("v_rtrim misc", v2.len == 2 && memcmp(v2.arr, "hi", 2) == 0);
+    CHECK_MSG("v_rtrim misc", v2.len == 2 && memcmp(v2.arr, "hi", 2) == 0,
+              "len=%u buf='%.*s'", v2.len, v2.len, v2.arr);
 }
 
 /* Case conversion should ignore non alphabetic characters. */
@@ -239,9 +300,11 @@ static void test_upper_lower_nonalpha(void) {
     strcpy(v.arr, "a1!B");
     v.len = 4;
     v_upper(v);
-    CHECK("v_upper nonalpha", strcmp(v.arr, "A1!B") == 0 && v.len == 4);
+    CHECK_MSG("v_upper nonalpha", strcmp(v.arr, "A1!B") == 0 && v.len == 4,
+              "got '%s' len=%u", v.arr, v.len);
     v_lower(v);
-    CHECK("v_lower nonalpha", strcmp(v.arr, "a1!b") == 0 && v.len == 4);
+    CHECK_MSG("v_lower nonalpha", strcmp(v.arr, "a1!b") == 0 && v.len == 4,
+              "got '%s' len=%u", v.arr, v.len);
 }
 
 /* v_upper/v_lower should be no-ops on an empty string. */
@@ -249,9 +312,9 @@ static void test_case_empty(void) {
     VARCHAR(v, 3);
     v.len = 0;
     v_upper(v);
-    CHECK("v_upper empty", v.len == 0);
+    CHECK_MSG("v_upper empty", v.len == 0, "len=%u", v.len);
     v_lower(v);
-    CHECK("v_lower empty", v.len == 0);
+    CHECK_MSG("v_lower empty", v.len == 0, "len=%u", v.len);
 }
 
 /* Verify normal case conversion on alphabetic characters. */
@@ -260,9 +323,11 @@ static void test_case(void) {
     strcpy(v.arr, "aB3");
     v.len = 3;
     v_upper(v);
-    CHECK("v_upper", strcmp(v.arr, "AB3") == 0 && v.len == 3);
+    CHECK_MSG("v_upper", strcmp(v.arr, "AB3") == 0 && v.len == 3,
+              "got '%s' len=%u", v.arr, v.len);
     v_lower(v);
-    CHECK("v_lower", strcmp(v.arr, "ab3") == 0 && v.len == 3);
+    CHECK_MSG("v_lower", strcmp(v.arr, "ab3") == 0 && v.len == 3,
+              "got '%s' len=%u", v.arr, v.len);
 }
 
 /*
@@ -275,11 +340,21 @@ static void test_mass_case(void) {
     memset(v.arr, 'a', N);
     v.len = N;
     v_upper(v);
-    for (size_t i = 0; i < N; i++)
-        if (v.arr[i] != 'A') { CHECK("v_mass_upper", 0); break; }
+    size_t bad = N;
+    for (size_t i = 0; i < N; i++) {
+        if (v.arr[i] != 'A') { bad = i; break; }
+    }
+    CHECK_MSG("v_mass_upper", bad == N,
+              "first bad index %zu char %c", bad,
+              bad == N ? '\0' : v.arr[bad]);
     v_lower(v);
-    for (size_t i = 0; i < N; i++)
-        if (v.arr[i] != 'a') { CHECK("v_mass_lower", 0); break; }
+    bad = N;
+    for (size_t i = 0; i < N; i++) {
+        if (v.arr[i] != 'a') { bad = i; break; }
+    }
+    CHECK_MSG("v_mass_lower", bad == N,
+              "first bad index %zu char %c", bad,
+              bad == N ? '\0' : v.arr[bad]);
 }
 
 /* v_sprintf should format data into the destination when it fits. */
@@ -287,21 +362,29 @@ static void test_v_sprintf_basic(void) {
     VARCHAR(v, 16);
     int n = v_sprintf(v, "hi %d", 42);
     int ok = (n == 4 && v.len == 4 && memcmp(v.arr, "hi 42", 5) == 0);
-    CHECK("v_sprintf basic", ok);
+    CHECK_MSG("v_sprintf basic", ok,
+              "expected n=4 len=4 text='hi 42' got n=%d len=%u text='%.*s'",
+              n, v.len, v.len, v.arr);
 }
 
 /* Overflow during formatting truncates the output. */
 static void test_v_sprintf_overflow(void) {
     VARCHAR(v, 4);
     int n = v_sprintf(v, "value %d", 100); /* longer than 4 */
-    CHECK("v_sprintf overflow", n == 3 && v.len == 3 && memcmp(v.arr, "val", 3) == 0);
+    CHECK_MSG("v_sprintf overflow",
+              n == 3 && v.len == 3 && memcmp(v.arr, "val", 3) == 0,
+              "expected return 3 and len 3 with \"val\" but got n=%d len=%u output \"%.*s\"",
+              n, v.len, v.len, v.arr);
 }
 
 /* Output equal to the buffer size is truncated by one byte. */
 static void test_v_sprintf_exact(void) {
     VARCHAR(v, 4);
     int n = v_sprintf(v, "abcd");
-    CHECK("v_sprintf exact", n == 3 && v.len == 3 && memcmp(v.arr, "abc", 3) == 0);
+    CHECK_MSG("v_sprintf exact",
+              n == 3 && v.len == 3 && memcmp(v.arr, "abc", 3) == 0,
+              "expected return 3 and len 3 with \"abc\" but got n=%d len=%u output \"%.*s\"",
+              n, v.len, v.len, v.arr);
 }
 
 /* Large formatting operations truncate by one byte as well. */
@@ -313,7 +396,9 @@ static void test_v_sprintf_large(void) {
     VARCHAR(v, N);
     int n = v_sprintf(v, "%s", src);
     int ok = (n == N - 1 && v.len == N - 1 && memcmp(v.arr, src, N - 1) == 0);
-    CHECK("v_sprintf large", ok);
+    CHECK_MSG("v_sprintf large", ok,
+              "expected return %d and len %d but got n=%d len=%u first byte 0x%02x",
+              N - 1, N - 1, n, v.len, (unsigned char)v.arr[0]);
 }
 
 /*
@@ -325,11 +410,13 @@ static void test_helper_macros(void) {
     VARCHAR(v, 4);
     strcpy(v.arr, "abc");
     v.len = 3;
-    CHECK("V_SIZE", V_SIZE(v) == 4);
+    CHECK_MSG("V_SIZE", V_SIZE(v) == 4,
+              "expected 4 got %zu", V_SIZE(v));
     char *p = V_BUF(v);
     p[0] = 'x';
-    CHECK("V_BUF", v.arr[0] == 'x');
-    CHECK("varchar_buf_t", sizeof(varchar_buf_t) == 1);
+    CHECK_MSG("V_BUF", v.arr[0] == 'x', "first char %c", v.arr[0]);
+    CHECK_MSG("varchar_buf_t", sizeof(varchar_buf_t) == 1,
+              "sizeof=%zu", sizeof(varchar_buf_t));
 }
 
 /* v_strncpy copies up to n characters from src */
@@ -339,7 +426,9 @@ static void test_v_strncpy(void) {
     src.len = 4;
     dst.len = 7;
     int n = v_strncpy(dst, src, 2);
-    CHECK("v_strncpy", n == 2 && memcmp(dst.arr, "ab", 2) == 0 && dst.len == 7);
+    CHECK_MSG("v_strncpy", n == 2 && memcmp(dst.arr, "ab", 2) == 0 && dst.len == 7,
+              "expected n=2 len=7 buf='ab' got n=%d len=%u buf='%.*s'",
+              n, dst.len, 2, dst.arr);
 }
 
 /* Overflow during v_strncpy clears the destination */
@@ -349,7 +438,10 @@ static void test_v_strncpy_overflow(void) {
     src.len = 4;
     dst.len = 1;
     int n = v_strncpy(dst, src, 4);
-    CHECK("v_strncpy overflow", n == 3 && memcmp(dst.arr, "abc", 3) == 0 && dst.len == 1);
+    CHECK_MSG("v_strncpy overflow",
+              n == 3 && memcmp(dst.arr, "abc", 3) == 0 && dst.len == 1,
+              "expected return 3 with \"abc\" and len 1 but got n=%d len=%u first byte 0x%02x",
+              n, dst.len, (unsigned char)dst.arr[0]);
 }
 
 /* v_strcat appends one VARCHAR to another */
@@ -358,7 +450,9 @@ static void test_v_strcat(void) {
     strcpy(a.arr, "ab"); a.len = 2;
     strcpy(b.arr, "cd"); b.len = 2;
     int n = v_strcat(a, b);
-    CHECK("v_strcat", n == 2 && a.len == 4 && memcmp(a.arr, "abcd", 4) == 0);
+    CHECK_MSG("v_strcat", n == 2 && a.len == 4 && memcmp(a.arr, "abcd", 4) == 0,
+              "expected n=2 len=4 buf='abcd' got n=%d len=%u buf='%.*s'",
+              n, a.len, 4, a.arr);
 }
 
 /* Overflow while concatenating truncates the appended data */
@@ -367,7 +461,10 @@ static void test_v_strcat_overflow(void) {
     strcpy(a.arr, "ab"); a.len = 2;
     strcpy(b.arr, "cde"); b.len = 3;
     int n = v_strcat(a, b);
-    CHECK("v_strcat overflow", n == 2 && a.len == 4 && memcmp(a.arr, "abcd", 4) == 0);
+    CHECK_MSG("v_strcat overflow",
+              n == 2 && a.len == 4 && memcmp(a.arr, "abcd", 4) == 0,
+              "expected return 2 and len 4 with \"abcd\" but got n=%d len=%u first byte 0x%02x",
+              n, a.len, (unsigned char)a.arr[0]);
 }
 
 /* v_strncat appends up to n characters */
@@ -376,7 +473,9 @@ static void test_v_strncat(void) {
     memcpy(a.arr, "ab", 2); a.len = 2;
     memcpy(b.arr, "cdef", 4); b.len = 4;
     int n = v_strncat(a, b, 2);
-    CHECK("v_strncat", n == 2 && a.len == 4 && memcmp(a.arr, "abcd", 4) == 0);
+    CHECK_MSG("v_strncat", n == 2 && a.len == 4 && memcmp(a.arr, "abcd", 4) == 0,
+              "expected n=2 len=4 buf='abcd' got n=%d len=%u buf='%.*s'",
+              n, a.len, 4, a.arr);
 }
 
 /* v_strncat overflow truncates the appended data */
@@ -385,7 +484,10 @@ static void test_v_strncat_overflow(void) {
     strcpy(a.arr, "ab"); a.len = 2;
     strcpy(b.arr, "cd"); b.len = 2;
     int n = v_strncat(a, b, 2);
-    CHECK("v_strncat overflow", n == 1 && a.len == 3 && memcmp(a.arr, "abc", 3) == 0);
+    CHECK_MSG("v_strncat overflow",
+              n == 1 && a.len == 3 && memcmp(a.arr, "abc", 3) == 0,
+              "expected return 1 and len 3 with \"abc\" but got n=%d len=%u first byte 0x%02x",
+              n, a.len, (unsigned char)a.arr[0]);
 }
 
 int main(int argc, char **argv) {
