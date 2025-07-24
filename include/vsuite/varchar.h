@@ -118,7 +118,7 @@ typedef VARCHAR(varchar_t, 1);
             __n = V_SIZE(dest);                                            \
         }                                                                  \
         memmove(V_BUF(dest), V_BUF(src), __n);                             \
-        __n;
+        __n;                                                               \
     })
 
 /*
@@ -261,33 +261,36 @@ static inline int v_sprintf_fcn(char *dst_buf, unsigned short capacity,
                                 unsigned short *dst_len, const char *fmt, ...) {
     varchar_overflow = 0;
 
-    if (capacity <= 0) { // Without capacity, there is nothing to do.
+    // Without capacity, there is nothing to do.
+    if (capacity <= 0) {
         return -1;
     }
 
     va_list ap;
-    char tmp[65536]; // 64 K
-
     va_start(ap, fmt);
-    int n = vsnprintf(tmp, sizeof(tmp), fmt, ap);
+    int n = vsnprintf(dst_buf, capacity, fmt, ap);
     va_end(ap);
 
-    if (n < 0) { // On error, do nothing but ensure destination is an empty string
-        if (capacity ) {
-            *dst_buf = '\0';
-        }
+    // On error, do nothing but ensure destination is an empty string
+    if (n < 0) { 
+        *dst_buf = '\0';
+        *dst_len = 0;
         return n;
     }
 
     if (n > capacity) {
         varchar_overflow = n - capacity;
+        V_WARN("Line %d : v_sprintf_fcn(%s, fmt, ...) : overflow : bytes required %d > %u capacity : fmt = \"%s\"", 
+                __LINE__, "dst_buf", n, capacity, fmt);
         n = capacity;
-        tmp[n-1] = '\0';
     }
 
-    memcpy(dst_buf, tmp, (size_t) n);
-    // VARCHAR length does not include zero-byte terminator
-    *dst_len = (unsigned short)n - 1;
+    // vsnprintf includes the terminator in the count.
+    // VARCHAR length must not include zero-byte terminator.
+    // See zvarchar.h to maintain VARCHARs with zero-byte terminators.
+    n -= 1;
+
+    *dst_len = (unsigned short)n;
     return n;
 }
 
@@ -297,7 +300,7 @@ static inline int v_sprintf_fcn(char *dst_buf, unsigned short capacity,
         int n = v_sprintf_fcn(V_BUF(v), capacity, &(v).len, fmt, ##__VA_ARGS__); \
         if (varchar_overflow > 0) { \
             V_WARN("Line %d : v_sprintf(%s, fmt, ...) : overflow : bytes required %u > %u capacity : fmt = \"%s\"", \
-                __LINE__, varchar_overflow+capacity, capacity, fmt); \
+                __LINE__, #v, varchar_overflow+capacity, capacity, fmt); \
         } \
         n; \
     })
