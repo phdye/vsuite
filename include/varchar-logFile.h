@@ -12,6 +12,23 @@
  */
 extern FILE *logFile;
 
+#define VARCHAR_zv_valid(v)                                       \
+    ({                                                            \
+        size_t capacity = ZV_CAPACITY(v);                         \
+        if ((v).len > capacity) {                                 \
+            fprintf(logFile,                                      \
+                    "Line %d : zv_valid(%s) overflow : .len %u > %lu c-string capacity\n\n", \
+                    __LINE__, #v, (v).len, capacity);             \
+        } else {                                                  \
+            if (V_BUF(v)[(v).len] != '\0') {                      \
+                fprintf(logFile,                                  \
+                    "Line %d : zv_valid(%s) : c-string not zero-byte terminated\n\n", \
+                    __LINE__, #v);                                \
+            }                                                     \
+        }                                                         \
+        zv_valid(v); \
+    })
+
 /*
  * VARCHAR_SETLENZ() - Safely NUL terminate a VARCHAR.
  * @v: VARCHAR variable to modify.
@@ -33,7 +50,7 @@ extern FILE *logFile;
         } \
         zv_zero_terminate(v); \
     } while (0)
- 
+
 /*
  * FIND_FIRST_NUL_BYTE() - Locate the first NUL in ``arr``.
  * @arr:     Character array to scan.
@@ -82,17 +99,58 @@ extern FILE *logFile;
  * @src: Source VARCHAR passed to ``v_copy``.
  *
  * The macro duplicates the capacity check used by ``v_copy`` and prints a
- * message to ``logFile`` when ``src`` would not fit inside ``dst``.  It performs
- * no copying itself.
+ * message to ``logFile`` when ``src`` would not fit inside ``dst``.
  */
 #define VARCHAR_v_copy(dst,src)                                   \
     do {                                                          \
+        VARCHAR_v_valid(src);                                     \
         unsigned siz = V_SIZE(dst);                               \
         if (siz < (src).len) {                                    \
-            fprintf(logFile,                                       \
+            fprintf(logFile,                                      \
                     "Line %d : v_copy(%s, %s) overflow : destination capacity %u < %u source length\n\n", \
-                    __LINE__, #dst, #src, siz, (src).len);         \
+                    __LINE__, #dst, #src, siz, (src).len);        \
         }                                                         \
+        v_copy((dst), (src));                                     \
+    } while (0)
+
+/*
+ * VARCHAR_zv_copy() - Log potential overflow of ``zv_copy``.
+ * @dst: Destination VARCHAR passed to ``zv_copy``.
+ * @src: Source VARCHAR passed to ``zv_copy``.
+ *
+ * The macro duplicates the capacity check used by ``zv_copy`` and prints a
+ * message to ``logFile`` when ``src`` would not fit inside ``dst``.
+ */
+#define VARCHAR_zv_copy(dst,src)                                  \
+    do {                                                          \
+        VARCHAR_zv_valid(src);                                    \
+        unsigned cap = ZV_CAPACITY(dst);                          \
+        if ( cap < (src).len) {                                   \
+            fprintf(logFile,                                      \
+                    "Line %d : zv_copy(%s, %s) overflow : destination c-string capacity %u < %u source length\n\n", \
+                    __LINE__, #dst, #src, cap, (src).len);        \
+        }                                                         \
+        zv_copy((dst), (src));                                    \
+    } while (0)
+
+/*
+ * VARCHAR_zvp_copy() - Log potential overflow of ``zvp_copy``.
+ * @dst: Destination VARCHAR passed to ``zvp_copy``.
+ * @src: Source char* passed to ``zvp_copy``.
+ *
+ * The macro duplicates the capacity check used by ``zvp_copy`` and prints a
+ * message to ``logFile`` when ``src`` would not fit inside ``dst``.
+ */
+#define VARCHAR_zvp_copy(dst,src)                                 \
+    do {                                                          \
+        unsigned len = strlen(src);                               \
+        unsigned cap = ZV_CAPACITY(dst);                          \
+        if ( cap < len) {                                         \
+            fprintf(logFile,                                      \
+                    "Line %d : zvp_copy(%s, %s) overflow : destination c-string capacity %u < %u source length\n\n", \
+                    __LINE__, #dst, #src, cap, len);              \
+        }                                                         \
+        zvp_copy((dst), (src));                                   \
     } while (0)
 
 /*
@@ -108,13 +166,13 @@ extern FILE *logFile;
  */
 #define VARCHAR_sprintf(v, fmt, ...)                                \
     do {                                                            \
-        int ok = v_sprintf_fcn(V_BUF(v), V_SIZE(v), &(v).len, fmt,   \
+        unsigned overflow = 0;                                      \
+        int ok = v_sprintf_fcn(V_BUF(v), V_SIZE(v), &(v).len, &overflow, fmt, \
                                ##__VA_ARGS__);                      \
-        int actual = sprintf((v).arr, fmt, ##__VA_ARGS__);           \
-        if (actual > ok) {                                          \
-            fprintf(logFile,                                         \
-                    "Line %d : sprintf(%s,...) overflow : length %d exceeds allocated size %lu\n\n", \
-                    __LINE__, #v, actual, sizeof((v).arr));          \
+        if (overflow) {                                             \
+            fprintf(logFile,                                        \
+                    "Line %d : sprintf(%s,...) overflow : length %lu exceeds allocated size %lu\n\n", \
+                    __LINE__, #v, V_SIZE(v)+overflow, V_SIZE(v));    \
         }                                                           \
     } while (0)
 
