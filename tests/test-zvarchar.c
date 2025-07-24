@@ -326,6 +326,57 @@ static void test_mass_case(void) {
     CHECK("zv_mass_case term", v.arr[N-1] == '\0');
 }
 
+/* zv_strncpy copies with termination */
+static void test_zv_strncpy(void) {
+    VARCHAR(src,6); VARCHAR(dst,6);
+    strcpy(src.arr, "abcd");
+    src.len = 4;
+    int n = zv_strncpy(dst, src, 2);
+    CHECK("zv_strncpy", n == 2 && dst.len == 2 && strcmp(dst.arr, "ab") == 0);
+}
+
+static void test_zv_strncpy_overflow(void) {
+    VARCHAR(src,4); VARCHAR(dst,3);
+    memcpy(src.arr, "abcd", 4);
+    src.len = 4;
+    int n = zv_strncpy(dst, src, 4);
+    CHECK("zv_strncpy overflow", n == 0 && dst.len == 0 && dst.arr[0] == '\0');
+}
+
+/* Concatenate zvarchars */
+static void test_zv_strcat(void) {
+    VARCHAR(a,6); VARCHAR(b,3);
+    strcpy(a.arr, "ab"); a.len = 2;
+    strcpy(b.arr, "cd"); b.len = 2;
+    int n = zv_strcat(a, b);
+    CHECK("zv_strcat", n == 2 && a.len == 4 && strcmp(a.arr, "abcd") == 0);
+}
+
+static void test_zv_strcat_overflow(void) {
+    VARCHAR(a,4); VARCHAR(b,3);
+    strcpy(a.arr, "ab"); a.len = 2;
+    strcpy(b.arr, "cde"); b.len = 3;
+    int n = zv_strcat(a, b);
+    CHECK("zv_strcat overflow", n == 0 && a.len == 0 && a.arr[0] == '\0');
+}
+
+/* zv_strncat appends up to n chars */
+static void test_zv_strncat(void) {
+    VARCHAR(a,6); VARCHAR(b,4);
+    strcpy(a.arr, "ab"); a.len = 2;
+    memcpy(b.arr, "cdef", 4); b.len = 4;
+    int n = zv_strncat(a, b, 2);
+    CHECK("zv_strncat", n == 2 && a.len == 4 && strcmp(a.arr, "abcd") == 0);
+}
+
+static void test_zv_strncat_overflow(void) {
+    VARCHAR(a,3); VARCHAR(b,3);
+    strcpy(a.arr, "ab"); a.len = 2;
+    strcpy(b.arr, "cd"); b.len = 2;
+    int n = zv_strncat(a, b, 2);
+    CHECK("zv_strncat overflow", n == 0 && a.len == 0 && a.arr[0] == '\0');
+}
+
 int main(int argc, char **argv) {
     for (int i=1;i<argc;i++) if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose")) verbose = 1;
 
@@ -360,6 +411,13 @@ int main(int argc, char **argv) {
     test_case_empty();
     test_upper_lower_nonalpha();
     test_mass_case();
+
+    test_zv_strncpy();
+    test_zv_strncpy_overflow();
+    test_zv_strcat();
+    test_zv_strcat_overflow();
+    test_zv_strncat();
+    test_zv_strncat_overflow();
 
     if (failures == 0) {
         printf(verbose ? "\nAll tests passed.\n" : "\n");

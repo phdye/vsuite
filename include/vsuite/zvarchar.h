@@ -71,6 +71,24 @@
            0))
 
 /*
+ * zv_strncpy() - Copy at most n characters and ensure termination.
+ */
+#define zv_strncpy(dest, src, n) \
+    ({ int __r = v_strncpy(dest, src, n); zv_zero_terminate(dest); __r; })
+
+/*
+ * zv_strcat() - Append src to dest with preserved terminator.
+ */
+#define zv_strcat(dest, src) \
+    ({ int __r = v_strcat(dest, src); zv_zero_terminate(dest); __r; })
+
+/*
+ * zv_strncat() - Append at most n characters from src to dest and terminate.
+ */
+#define zv_strncat(dest, src, n) \
+    ({ int __r = v_strncat(dest, src, n); zv_zero_terminate(dest); __r; })
+
+/*
  * zv_ltrim() - Call v_ltrim() and then re-apply zero termination.
  */
 #define zv_ltrim(v) do { v_ltrim(v); zv_zero_terminate(v); } while (0)
