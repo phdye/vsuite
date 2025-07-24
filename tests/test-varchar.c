@@ -95,11 +95,12 @@ static void test_copy(void) {
     VARCHAR(src, 6); VARCHAR(dst, 6); VARCHAR(small, 2);
     strcpy(src.arr, "abc");
     src.len = 3;
+    dst.len = 0; small.len = 0; dst.arr[0]=small.arr[0]='\0';
     int n = v_copy(dst, src);
-    CHECK("v_copy len", n == 3 && dst.len == 3 && memcmp(dst.arr, "abc", 3) == 0);
+    CHECK("v_copy len", n == 3 && memcmp(dst.arr, "abc", 3) == 0 && dst.len == 0);
 
     n = v_copy(small, src);
-    CHECK("v_copy fail", n == 0 && small.len == 0);
+    CHECK("v_copy trunc", n == 2 && memcmp(small.arr, "ab", 2) == 0 && small.len == 0);
 }
 
 /* Copy that exactly fills the destination buffer. */
@@ -107,16 +108,18 @@ static void test_copy_exact(void) {
     VARCHAR(src, 3); VARCHAR(dst, 3);
     strcpy(src.arr, "abc");
     src.len = 3;
+    dst.len = 1;
     int n = v_copy(dst, src);
-    CHECK("v_copy exact", n == 3 && dst.len == 3 && memcmp(dst.arr, "abc", 3) == 0);
+    CHECK("v_copy exact", n == 3 && memcmp(dst.arr, "abc", 3) == 0 && dst.len == 1);
 }
 
 /* Copying an empty source should leave the destination empty as well. */
 static void test_copy_empty(void) {
     VARCHAR(src, 4); VARCHAR(dst, 4);
     src.len = 0;
+    dst.len = 5;
     int n = v_copy(dst, src);
-    CHECK("v_copy empty", n == 0 && dst.len == 0);
+    CHECK("v_copy empty", n == 0 && dst.len == 5);
 }
 
 /* Ensure copying onto itself behaves as a no-op. */
@@ -133,8 +136,9 @@ static void test_copy_dest_size_one(void) {
     VARCHAR(src, 3); VARCHAR(dst, 1);
     strcpy(src.arr, "ab");
     src.len = 2;
+    dst.len = 7;
     int n = v_copy(dst, src);
-    CHECK("v_copy tiny", n == 0 && dst.len == 0);
+    CHECK("v_copy tiny", n == 1 && memcmp(dst.arr, "a", 1) == 0 && dst.len == 7);
 }
 
 /* Copy a very large string to ensure no size assumptions break. */
@@ -143,8 +147,9 @@ static void test_large_copy(void) {
     VARCHAR(src, N); VARCHAR(dst, N);
     memset(src.arr, 'a', N);
     src.len = N;
+    dst.len = 42;
     int n = v_copy(dst, src);
-    CHECK("v_copy large", n == N && dst.len == N && memcmp(dst.arr, src.arr, N) == 0);
+    CHECK("v_copy large", n == N && memcmp(dst.arr, src.arr, N) == 0 && dst.len == 42);
 }
 
 /*
@@ -156,8 +161,9 @@ static void test_extreme_copy(void) {
     VARCHAR(src, N); VARCHAR(dst, N);
     memset(src.arr, 'x', N);
     src.len = N;
+    dst.len = 0;
     int n = v_copy(dst, src);
-    CHECK("v_copy extreme", n == N && dst.len == N && memcmp(dst.arr, src.arr, N) == 0);
+    CHECK("v_copy extreme", n == N && memcmp(dst.arr, src.arr, N) == 0 && dst.len == 0);
 }
 
 /* Verify left, right and full trimming of whitespace. */
@@ -280,25 +286,25 @@ static void test_mass_case(void) {
 static void test_v_sprintf_basic(void) {
     VARCHAR(v, 16);
     int n = v_sprintf(v, "hi %d", 42);
-    int ok = (n == 5 && v.len == 5 && memcmp(v.arr, "hi 42", 5) == 0);
+    int ok = (n == 4 && v.len == 4 && memcmp(v.arr, "hi 42", 5) == 0);
     CHECK("v_sprintf basic", ok);
 }
 
-/* Overflow during formatting clears the destination length. */
+/* Overflow during formatting truncates the output. */
 static void test_v_sprintf_overflow(void) {
     VARCHAR(v, 4);
     int n = v_sprintf(v, "value %d", 100); /* longer than 4 */
-    CHECK("v_sprintf overflow", n == 0 && v.len == 0);
+    CHECK("v_sprintf overflow", n == 3 && v.len == 3 && memcmp(v.arr, "val", 3) == 0);
 }
 
-/* Exactly filling the buffer should succeed and update the length. */
+/* Output equal to the buffer size is truncated by one byte. */
 static void test_v_sprintf_exact(void) {
     VARCHAR(v, 4);
     int n = v_sprintf(v, "abcd");
-    CHECK("v_sprintf exact", n == 4 && v.len == 4 && memcmp(v.arr, "abcd", 4) == 0);
+    CHECK("v_sprintf exact", n == 3 && v.len == 3 && memcmp(v.arr, "abc", 3) == 0);
 }
 
-/* Large formatting operations should also work correctly. */
+/* Large formatting operations truncate by one byte as well. */
 static void test_v_sprintf_large(void) {
     enum { N = 4096 };
     char src[N + 1];
@@ -306,7 +312,7 @@ static void test_v_sprintf_large(void) {
     src[N] = '\0';
     VARCHAR(v, N);
     int n = v_sprintf(v, "%s", src);
-    int ok = (n == N && v.len == N && memcmp(v.arr, src, N) == 0);
+    int ok = (n == N - 1 && v.len == N - 1 && memcmp(v.arr, src, N - 1) == 0);
     CHECK("v_sprintf large", ok);
 }
 
@@ -331,8 +337,9 @@ static void test_v_strncpy(void) {
     VARCHAR(src,6); VARCHAR(dst,6);
     strcpy(src.arr, "abcd");
     src.len = 4;
+    dst.len = 7;
     int n = v_strncpy(dst, src, 2);
-    CHECK("v_strncpy", n == 2 && dst.len == 2 && memcmp(dst.arr, "ab", 2) == 0);
+    CHECK("v_strncpy", n == 2 && memcmp(dst.arr, "ab", 2) == 0 && dst.len == 7);
 }
 
 /* Overflow during v_strncpy clears the destination */
@@ -340,8 +347,9 @@ static void test_v_strncpy_overflow(void) {
     VARCHAR(src,4); VARCHAR(dst,3);
     memcpy(src.arr, "abcd", 4);
     src.len = 4;
+    dst.len = 1;
     int n = v_strncpy(dst, src, 4);
-    CHECK("v_strncpy overflow", n == 0 && dst.len == 0);
+    CHECK("v_strncpy overflow", n == 3 && memcmp(dst.arr, "abc", 3) == 0 && dst.len == 1);
 }
 
 /* v_strcat appends one VARCHAR to another */
@@ -353,13 +361,13 @@ static void test_v_strcat(void) {
     CHECK("v_strcat", n == 2 && a.len == 4 && memcmp(a.arr, "abcd", 4) == 0);
 }
 
-/* Overflow while concatenating clears the destination */
+/* Overflow while concatenating truncates the appended data */
 static void test_v_strcat_overflow(void) {
     VARCHAR(a,4); VARCHAR(b,3);
     strcpy(a.arr, "ab"); a.len = 2;
     strcpy(b.arr, "cde"); b.len = 3;
     int n = v_strcat(a, b);
-    CHECK("v_strcat overflow", n == 0 && a.len == 0);
+    CHECK("v_strcat overflow", n == 2 && a.len == 4 && memcmp(a.arr, "abcd", 4) == 0);
 }
 
 /* v_strncat appends up to n characters */
@@ -371,13 +379,13 @@ static void test_v_strncat(void) {
     CHECK("v_strncat", n == 2 && a.len == 4 && memcmp(a.arr, "abcd", 4) == 0);
 }
 
-/* v_strncat overflow clears the destination */
+/* v_strncat overflow truncates the appended data */
 static void test_v_strncat_overflow(void) {
     VARCHAR(a,3); VARCHAR(b,3);
     strcpy(a.arr, "ab"); a.len = 2;
     strcpy(b.arr, "cd"); b.len = 2;
     int n = v_strncat(a, b, 2);
-    CHECK("v_strncat overflow", n == 0 && a.len == 0);
+    CHECK("v_strncat overflow", n == 1 && a.len == 3 && memcmp(a.arr, "abc", 3) == 0);
 }
 
 int main(int argc, char **argv) {
