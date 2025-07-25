@@ -164,16 +164,16 @@ extern FILE *logFile;
  * purposes.  If ``sprintf`` reports writing more characters than allowed the
  * mismatch is logged to ``logFile``.
  */
-#define VARCHAR_sprintf(v, fmt, ...)                                \
-    do {                                                            \
-        unsigned overflow = 0;                                      \
-        int ok = v_sprintf_fcn(V_BUF(v), V_SIZE(v), &(v).len, &overflow, fmt, \
-                               ##__VA_ARGS__);                      \
-        if (overflow) {                                             \
-            fprintf(logFile,                                        \
+#define VARCHAR_sprintf(v, fmt, ...)                               \
+    ({                                                             \
+        unsigned capacity = ZV_CAPACITY(v);                        \
+        int n = v_sprintf_fcn(V_BUF(v), capacity, &(v).len, fmt, ##__VA_ARGS__); \
+        if (varchar_overflow > 0) {                                \
+            fprintf(logFile,                                       \
                     "Line %d : sprintf(%s,...) overflow : length %lu exceeds allocated size %lu\n\n", \
-                    __LINE__, #v, V_SIZE(v)+overflow, V_SIZE(v));    \
-        }                                                           \
-    } while (0)
+                    __LINE__, #v, V_SIZE(v)+varchar_overflow, V_SIZE(v)); \
+        } \
+        n; \
+    })
 
 #endif // VARCHAR_LOGFILE_H
