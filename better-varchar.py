@@ -142,16 +142,16 @@ def transform(text, base=0, show=None, only=None):
         only = set(o.replace('-', '_') for o in only)
     text = replace_setlenz(text, base, show) if not only or 'setlenz' in only else text
     text = (
-        replace_v_copy_0(text, base, show)
-        if not only or 'v_copy_0' in only else text
-    )
-    text = (
         replace_v_copy_1(text, base, show)
         if not only or 'v_copy_1' in only else text
     )
     text = (
         replace_v_copy_2(text, base, show)
         if not only or 'v_copy_2' in only else text
+    )
+    text = (
+        replace_v_copy_3(text, base, show)
+        if not only or 'v_copy_3' in only else text
     )
     text = replace_vp_copy(text, base, show) if not only or 'vp_copy' in only else text
     text = (
@@ -248,7 +248,7 @@ def replace_setlenz(text, base=0, show=None):
     )
 
 
-def replace_v_copy_0(text, base=0, show=None):
+def replace_v_copy_1(text, base=0, show=None):
     """Collapse strcpy + strlen + terminator into v_copy.
 
     Matches a sequence that copies ``src`` to ``dst`` using ``strcpy`` and then
@@ -265,14 +265,14 @@ def replace_v_copy_0(text, base=0, show=None):
     if show:
         for m in pattern.finditer(text):
             line = base + text.count("\n", 0, m.start()) + 1
-            show("v_copy_0", line, m.group(0))
+            show("v_copy_1", line, m.group(0))
     return pattern.sub(
         lambda m: "%sVARCHAR_v_copy(%s, %s);" % (m.group('indent'), m.group('dst'), m.group('src')),
         text,
     )
 
 
-def replace_v_copy_1(text, base=0, show=None):
+def replace_v_copy_2(text, base=0, show=None):
     """Collapse ``strcpy`` + length assignment into ``v_copy``.
 
     This looks for a call to ``strcpy`` where both arguments are the
@@ -298,7 +298,7 @@ def replace_v_copy_1(text, base=0, show=None):
     )
 
 
-def replace_v_copy_2(text, base=0, show=None):
+def replace_v_copy_3(text, base=0, show=None):
     """Collapse ``strcpy`` of .arr to .arr into ``v_copy``.
 
     This looks for a call to ``strcpy`` where both arguments are the
