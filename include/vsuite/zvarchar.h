@@ -60,15 +60,94 @@
  * too small it is truncated to leave space for the terminator and zero is
  * returned.
  */
-#define zv_copy(dest, src) \
-    ((V_SIZE(dest) > (src).len) \
-        ? (memmove(V_BUF(dest), V_BUF(src), (src).len), \
-           (dest).len = (src).len, \
-           V_BUF(dest)[(dest).len] = '\0', \
-           (src).len) \
-        : ((dest).len = (V_SIZE(dest) > 0 ? V_SIZE(dest) - 1 : 0), \
-           V_SIZE(dest) > 0 ? (V_BUF(dest)[(dest).len] = '\0') : (void)0, \
-           0))
+#define zv_copy(dest, src)                                           \
+    ({                                                               \
+        varchar_overflow = 0;                                       \
+        size_t __cap = ZV_CAPACITY(dest);                           \
+        size_t __n = (src).len;                                     \
+        if (__n > __cap) {                                          \
+            varchar_overflow = __n - __cap;                         \
+            V_WARN("Line %d : zv_copy(%s, %s) : overflow : bytes required %zu > %u capacity", \
+                  __LINE__, #dest, #src, __n, V_SIZE(dest));        \
+            __n = __cap;                                            \
+        }                                                           \
+        memmove(V_BUF(dest), V_BUF(src), __n);                      \
+        (dest).len = __n;                                           \
+        if (V_SIZE(dest) > 0)                                       \
+            V_BUF(dest)[__n] = '\0';                                \
+        __n;                                                        \
+    })
+
+/*
+ * zv_strncpy() - Copy at most n characters and ensure termination.
+ */
+#define zv_strncpy(dest, src, n)                                    \
+    ({                                                             \
+        varchar_overflow = 0;                                      \
+        size_t __cap = ZV_CAPACITY(dest);                          \
+        size_t __n = (n);                                          \
+        if (__n > (src).len)                                       \
+            __n = (src).len;                                       \
+        if (__n > __cap) {                                         \
+            varchar_overflow = __n - __cap;                        \
+            V_WARN("Line %d : zv_strncpy(%s, %s, %u) : overflow : bytes required %zu > %u capacity", \
+                   __LINE__, #dest, #src, (unsigned)(n), __n, V_SIZE(dest)); \
+            __n = __cap;                                           \
+        }                                                          \
+        memmove(V_BUF(dest), V_BUF(src), __n);                     \
+        (dest).len = __n;                                          \
+        if (V_SIZE(dest) > 0)                                      \
+            V_BUF(dest)[__n] = '\0';                               \
+        (int)__n;                                                  \
+    })
+
+/*
+ * zv_strcat() - Append src to dest with preserved terminator.
+ */
+#define zv_strcat(dest, src)                                      \
+    ({                                                           \
+        varchar_overflow = 0;                                    \
+        size_t __avail = (V_SIZE(dest) > (dest).len)              \
+                            ? V_SIZE(dest) - 1 - (dest).len       \
+                            : 0;                                  \
+        size_t __n = (src).len;                                   \
+        if (__n > __avail) {                                      \
+            varchar_overflow = __n - __avail;                     \
+            V_WARN("Line %d : zv_strcat(%s, %s) : overflow : bytes required %zu > %u capacity", \
+                   __LINE__, #dest, #src, __n, V_SIZE(dest));     \
+            __n = __avail;                                        \
+        }                                                         \
+        memmove(V_BUF(dest) + (dest).len, V_BUF(src), __n);       \
+        (dest).len += __n;                                        \
+        if (V_SIZE(dest) > 0)                                     \
+            V_BUF(dest)[(dest).len] = '\0';                       \
+        (int)__n;                                                 \
+    })
+
+/*
+ * zv_strncat() - Append at most n characters from src to dest and terminate.
+ */
+#define zv_strncat(dest, src, n)                                    \
+    ({                                                             \
+        varchar_overflow = 0;                                      \
+        size_t __avail = (V_SIZE(dest) > (dest).len)                \
+                            ? V_SIZE(dest) - 1 - (dest).len         \
+                            : 0;                                    \
+        size_t __n = (n);                                          \
+        if (__n > (src).len)                                       \
+            __n = (src).len;                                       \
+        if (__n > __avail) {                                       \
+            varchar_overflow = __n - __avail;                      \
+            V_WARN("Line %d : zv_strncat(%s, %s, %u) : overflow : bytes required %zu > %u capacity", \
+                   __LINE__, #dest, #src, (unsigned)(n), __n, V_SIZE(dest)); \
+            __n = __avail;                                         \
+        }                                                          \
+        memmove(V_BUF(dest) + (dest).len, V_BUF(src), __n);        \
+        (dest).len += __n;                                         \
+        if (V_SIZE(dest) > 0)                                      \
+            V_BUF(dest)[(dest).len] = '\0';                        \
+        (int)__n;                                                  \
+    })
 
 /*
  * zv_ltrim() - Call v_ltrim() and then re-apply zero termination.
