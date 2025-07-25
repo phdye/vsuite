@@ -1,0 +1,37 @@
+**********************************************************************************************************************************
+GL interface started on Tue Jul 22 11:53:37 2025
+ 
+
+
+**********************************************************************************************************************************
+Line 2104 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->entity) : No NUL byte found within 3 sizeof(.arr) bytes : value '01ð'
+Line 2105 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->resp_org) : No NUL byte found within 5 sizeof(.arr) bytes : value '3013à'
+Line 2106 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->perf_org) : No NUL byte found within 5 sizeof(.arr) bytes : value '3013ð'
+Line 2111 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->rpt_class) : No NUL byte found within 7 sizeof(.arr) bytes : value '000000Ñì'
+Line 2112 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->future2) : No NUL byte found within 7 sizeof(.arr) bytes : value '000000`'
+Line 2116 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->amount) : No NUL byte found within 20 sizeof(.arr) bytes : value '440.9'
+Line 2117 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->quantity) : No NUL byte found within 20 sizeof(.arr) bytes : value '8744ÿÿ'
+Line 2118 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->billing_acct_flg) : No NUL byte found within 15 sizeof(.arr) bytes : value 'C.2.0,M11.1.0
+™fà'
+Line 2380 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->entity) : No NUL byte found within 3 sizeof(.arr) bytes : value '01'
+Line 2381 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->resp_org) : No NUL byte found within 5 sizeof(.arr) bytes : value '0000'
+Line 2382 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->perf_org) : No NUL byte found within 5 sizeof(.arr) bytes : value '0000'
+Line 2383 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->location) : No NUL byte found within 6 sizeof(.arr) bytes : value '00000'
+Line 2384 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->nat_acct) : No NUL byte found within 6 sizeof(.arr) bytes : value '21109'
+Line 2385 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->ferc_acct) : No NUL byte found within 7 sizeof(.arr) bytes : value '232000'
+Line 2386 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->intercomp) : No NUL byte found within 7 sizeof(.arr) bytes : value '00'
+Line 2387 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->rpt_class) : No NUL byte found within 7 sizeof(.arr) bytes : value '000000'
+Line 2388 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->future2) : No NUL byte found within 7 sizeof(.arr) bytes : value '000000'
+Line 2389 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->acct_flag) : No NUL byte found within 20 sizeof(.arr) bytes : value 'Rÿÿºž'
+Line 2390 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->gl_post_desc) : No NUL byte found within 64 sizeof(.arr) bytes : value 'COGEN - ACCOUNTS PAYABLES'
+Line 2394 : VARCHAR_ZSETLEN(invoice_list_ptr->product_list_tail->post_jv_stats) : No NUL byte found within 15 sizeof(.arr) bytes : value 'NO'
+
+GL:  Error report_insert_stats():
+ORA-01722: invalid number
+                                            
+**********************************************************************************************************************************
+GL interface ended on Tue Jul 22 11:53:37 2025
+ 
+
+
+**********************************************************************************************************************************
