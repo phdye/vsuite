@@ -67,7 +67,7 @@
         size_t __n = (src).len;                                     \
         if (__n > __cap) {                                          \
             varchar_overflow = __n - __cap;                         \
-            V_WARN("Line %d : zv_copy(%s, %s) : overflow : bytes required %zu > %u capacity", \
+            V_WARN("Line %d : zv_copy(%s, %s) : overflow : bytes required %zu > %zu capacity", \
                   __LINE__, #dest, #src, __n, V_SIZE(dest));        \
             __n = __cap;                                            \
         }                                                           \
@@ -90,7 +90,7 @@
             __n = (src).len;                                       \
         if (__n > __cap) {                                         \
             varchar_overflow = __n - __cap;                        \
-            V_WARN("Line %d : zv_strncpy(%s, %s, %u) : overflow : bytes required %zu > %u capacity", \
+            V_WARN("Line %d : zv_strncpy(%s, %s, %u) : overflow : bytes required %zu > %zu capacity", \
                    __LINE__, #dest, #src, (unsigned)(n), __n, V_SIZE(dest)); \
             __n = __cap;                                           \
         }                                                          \
@@ -113,7 +113,7 @@
         size_t __n = (src).len;                                   \
         if (__n > __avail) {                                      \
             varchar_overflow = __n - __avail;                     \
-            V_WARN("Line %d : zv_strcat(%s, %s) : overflow : bytes required %zu > %u capacity", \
+            V_WARN("Line %d : zv_strcat(%s, %s) : overflow : bytes required %zu > %zu capacity", \
                    __LINE__, #dest, #src, __n, V_SIZE(dest));     \
             __n = __avail;                                        \
         }                                                         \
@@ -138,7 +138,7 @@
             __n = (src).len;                                       \
         if (__n > __avail) {                                       \
             varchar_overflow = __n - __avail;                      \
-            V_WARN("Line %d : zv_strncat(%s, %s, %u) : overflow : bytes required %zu > %u capacity", \
+            V_WARN("Line %d : zv_strncat(%s, %s, %u) : overflow : bytes required %zu > %zu capacity", \
                    __LINE__, #dest, #src, (unsigned)(n), __n, V_SIZE(dest)); \
             __n = __avail;                                         \
         }                                                          \
