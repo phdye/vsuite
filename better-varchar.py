@@ -16,6 +16,8 @@ The following conversions are currently supported:
 ``v_copy``
     ``strcpy(FOO.arr, BAR.arr);`` followed by
     ``FOO.arr[BAR.len] = '\0';`` becomes ``v_copy(FOO, BAR);``.
+    ``strcpy(FOO.arr, BAR.arr);`` then ``FOO.len = strlen(FOO.arr);`` and
+    ``FOO.arr[FOO.len] = '\0';`` becomes ``v_copy(FOO, BAR);``.
 
 ``vp_copy``
     ``strcpy(FOO.arr, "literal");`` becomes ``vp_copy(FOO, "literal");``.
@@ -140,6 +142,10 @@ def transform(text, base=0, show=None, only=None):
         only = set(o.replace('-', '_') for o in only)
     text = replace_setlenz(text, base, show) if not only or 'setlenz' in only else text
     text = (
+        replace_v_copy_0(text, base, show)
+        if not only or 'v_copy_0' in only else text
+    )
+    text = (
         replace_v_copy_1(text, base, show)
         if not only or 'v_copy_1' in only else text
     )
@@ -238,6 +244,30 @@ def replace_setlenz(text, base=0, show=None):
             show("setlenz", line, m.group(0))
     return pattern.sub(
         lambda m: "%sVARCHAR_SETLENZ(%s);" % (m.group('indent'), m.group('var')),
+        text,
+    )
+
+
+def replace_v_copy_0(text, base=0, show=None):
+    """Collapse strcpy + strlen + terminator into v_copy.
+
+    Matches a sequence that copies ``src`` to ``dst`` using ``strcpy`` and then
+    derives ``dst.len`` via ``strlen`` followed by explicit NUL termination.  The
+    entire block is replaced with ``VARCHAR_v_copy(dst, src);``.
+    """
+
+    pattern = re.compile(
+        r"(?P<indent>^[ \t]*)strcpy\(\s*(?:\(char\*\))?\s*(?P<dst>" + _VAR +
+        r")\.arr,\s*(?:\(char\*\))?\s*(?P<src>" + _VAR +
+        r")\.arr\s*\);\s*(?:\n\s*)?(?P=dst)\.len\s*=\s*strlen\(\s*(?:\(char\*\))?\s*(?P=dst)\.arr\s*\)\s*;\s*(?:\n\s*)?(?P=dst)\.arr\[(?P=dst)\.len\]\s*=\s*'\0';",
+        re.MULTILINE,
+    )
+    if show:
+        for m in pattern.finditer(text):
+            line = base + text.count("\n", 0, m.start()) + 1
+            show("v_copy_0", line, m.group(0))
+    return pattern.sub(
+        lambda m: "%sVARCHAR_v_copy(%s, %s);" % (m.group('indent'), m.group('dst'), m.group('src')),
         text,
     )
 
