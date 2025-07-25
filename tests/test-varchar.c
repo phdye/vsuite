@@ -90,13 +90,13 @@ static void test_unused_capacity(void) {
     VARCHAR(v, 5);
     v.len = 2;
     CHECK_MSG("v_unused_capacity", v_unused_capacity(v) == 3,
-              "len=%u cap=%zu got %d", v.len, V_SIZE(v), v_unused_capacity(v));
+              "len=%u cap=%zu got %lu", v.len, V_SIZE(v), v_unused_capacity(v));
     v.len = 5;
     CHECK_MSG("v_unused_capacity zero", v_unused_capacity(v) == 0,
-              "len=%u cap=%zu got %d", v.len, V_SIZE(v), v_unused_capacity(v));
+              "len=%u cap=%zu got %lu", v.len, V_SIZE(v), v_unused_capacity(v));
     v.len = 6;
     CHECK_MSG("v_unused_capacity overflow", v_unused_capacity(v) == 0,
-              "len=%u cap=%zu got %d", v.len, V_SIZE(v), v_unused_capacity(v));
+              "len=%u cap=%zu got %lu", v.len, V_SIZE(v), v_unused_capacity(v));
 }
 
 /*
@@ -108,18 +108,18 @@ static void test_has_unused_capacity(void) {
     VARCHAR(v, 5);
     v.len = 2;
     CHECK_MSG("v_has_unused ok", v_has_unused_capacity(v, 3),
-              "len=%u unused=%d check=3 result=%d", v.len,
+              "len=%u unused=%lu check=3 result=%d", v.len,
               v_unused_capacity(v), v_has_unused_capacity(v,3));
     CHECK_MSG("v_has_unused none", !v_has_unused_capacity(v, 4),
-              "len=%u unused=%d check=4 result=%d", v.len,
+              "len=%u unused=%lu check=4 result=%d", v.len,
               v_unused_capacity(v), v_has_unused_capacity(v,4));
     v.len = 5;
     CHECK_MSG("v_has_unused full", !v_has_unused_capacity(v, 1),
-              "len=%u unused=%d check=1 result=%d", v.len,
+              "len=%u unused=%lu check=1 result=%d", v.len,
               v_unused_capacity(v), v_has_unused_capacity(v,1));
     v.len = 7;
     CHECK_MSG("v_has_unused overflow", !v_has_unused_capacity(v, 1),
-              "len=%u cap=%zu unused=%d check=1 result=%d", v.len, V_SIZE(v),
+              "len=%u cap=%zu unused=%lu check=1 result=%d", v.len, V_SIZE(v),
               v_unused_capacity(v), v_has_unused_capacity(v,1));
 }
 
