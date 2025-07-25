@@ -11,6 +11,10 @@
 #define V_WARN(fmt, ...) /* */
 #endif
 
+#ifdef V_WARN_STDERR
+#define V_WARN(fmt, ...) fprintf(stderr, fmt "\n", ##__VA_ARGS__)
+#endif
+
 size_t varchar_overflow = 0;
 
 /**
