@@ -1,3 +1,9 @@
+strcpy([(char*)]DST.arr, [(char*)]SRC.arr);
+DST.len = strlen(DST.arr);
+DST.arr[DST.len] = '\0';
+=> VARCHAR_v_copy(DST, SRC);
+
+
 FOO.arr[FOO.len] = '\0';
 => VARCHAR_SETLENZ(FOO);
 
