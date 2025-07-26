@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <ctype.h>
+
 /*
  * S_SIZE() - Return the total capacity of fixed C-String
  * @s: Fixed allocation C-String
@@ -48,7 +49,18 @@
  * Fills the buffer with ``'\0'`` bytes to ensure any previous contents are
  * cleared.
  */
-#define s_init(s) do { memset((s), '\0', S_SIZE(s)); } while (0)
+#define s_init(s)                                                          \
+    ({                                                                     \
+        size_t siz = S_SIZE(s);                                            \
+        if (siz > 0) {                                                     \
+            (s)[0] = '\0';                                                 \
+            1;                                                             \
+        } else {                                                           \
+            V_WARN("Line %d : s_init(%s) : overflow : size 0 string cannot be initialized.", \
+                __LINE__, #s);                                             \
+            0;                                                             \
+        }                                                                  \
+    })
 
 /*
  * s_valid() - Validate that @s does not exceed the buffer size.
@@ -56,9 +68,19 @@
 #define s_valid(s) (strnlen((s), S_SIZE(s)) < S_SIZE(s))
 
 /*
- * s_clear() - Alias for s_init(); provided for readability.
+ * s_clear() - Clear a C string buffer.
  */
-#define s_clear(s) s_init(s)
+#define s_clear(s) \
+    ({                                                                     \
+        size_t siz = S_SIZE(s);                                            \
+        if (siz > 0) {                                                     \
+            memset((s), '\0', siz);                                        \
+        } else {                                                           \
+            V_WARN("Line %d : s_clear(%s) : overflow : size 0 string cannot be cleared.", \
+                __LINE__, #s);                                             \
+        }                                                                  \
+        siz;                                                               \
+    })
 
 /*
  * s_copy() - Copy one C string into another.
