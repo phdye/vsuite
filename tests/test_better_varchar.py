@@ -78,6 +78,9 @@ class TestBetterVarchar(unittest.TestCase):
 
     def test_show_no_write(self):
         import tempfile
+        import io
+        import contextlib
+
         tmpdir = tempfile.mkdtemp()
         try:
             in_path = os.path.join(tmpdir, 'in.pc')
