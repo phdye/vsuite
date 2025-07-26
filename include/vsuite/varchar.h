@@ -313,7 +313,7 @@ static inline int v_sprintf_fcn(char *dst_buf, size_t capacity,
         n = capacity - 1;
     }
 
-    // vsnprintf does not includes the terminator in the count.
+    // vsnprintf does not include the terminator in the returned count.
 
     *dst_len = (unsigned short)n;
     return n;
