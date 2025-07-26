@@ -16,7 +16,7 @@
  *
  * Returns true when the destination buffer has at least @N bytes of space.
  */
-#define s_has_capacity(s, N) ((s) <= S_SIZE(s))
+#define s_has_capacity(s, N) ((N) <= S_SIZE(s))
 
 /*
  * s_unused_capacity() - Return number of unused bytes
@@ -24,7 +24,11 @@
  *
  * Returns the number of remaining bytes available.
  */
-#define s_unused_capacity(s) (S_SIZE(v) - strlen(s))
+#define s_unused_capacity(s) \
+    ({ \
+        size_t __len = strnlen((s), S_SIZE(s)); \
+        __len >= S_SIZE(s) ? 0 : S_SIZE(s) - __len - 1; \
+    })
 
 /*
  * s_has_unused_capacity() - Test if @s can hold @N additional bytes.
@@ -38,195 +42,195 @@
     ((N) <= s_unused_capacity(s))
 
 /*
- * v_init() - Reset a VARCHAR to an empty state.
- * @v: VARCHAR variable to modify.
+ * s_init() - Reset a C string buffer to an empty state.
+ * @s: Fixed C string to modify.
  *
- * Sets ``len`` to zero and fills the underlying buffer with ``'\0'``
- * bytes to ensure any previous contents are cleared.
+ * Fills the buffer with ``'\0'`` bytes to ensure any previous contents are
+ * cleared.
  */
-#define s_init(v) do { if (S_SIZE(s) > 0) { (s)[0] = '\0'); } } while(0)
+#define s_init(s) do { memset((s), '\0', S_SIZE(s)); } while (0)
 
 /*
  * s_valid() - Validate that @s does not exceed the buffer size.
  */
-#define s_valid(s) (strlen(s) <= S_SIZE(s))
+#define s_valid(s) (strnlen((s), S_SIZE(s)) < S_SIZE(s))
 
 /*
  * s_clear() - Alias for s_init(); provided for readability.
  */
-#define s_clear(s) \
-    ({                                                                     \
-        varchar_overflow = 0;                                              \
-        size_t siz = S_SIZE(s);                                            \
-        if (siz > 0) {                                                     \
-            memset((s), '\0', siz);                                        \
-        } else {                                                           \
-            V_WARN("Line %d : s_clear(%s) : overflow : 0 size string cannot be cleared.", \
-                __LINE__, #s);                                             \
-        }                                                                  \
-        siz;                                                               \
-    })
+#define s_clear(s) s_init(s)
 
 /*
- * v_copy() - Copy one VARCHAR into another.
- * @dest: Destination VARCHAR that receives the data.
- * @src:  Source VARCHAR to copy from.
+ * s_copy() - Copy one C string into another.
+ * @dest: Destination C string that receives the data.
+ * @src:  Source C string to copy from.
  *
  * Copies ``src`` into ``dest`` truncating when the destination buffer is
- * smaller than ``src.len``.  The destination ``len`` field is **not** modified.
- * The number of bytes moved (after truncation) is returned and any overflow is
- * recorded in ``varchar_overflow``.
+ * smaller than ``dest``.  The number of bytes moved (after truncation) is
+ * returned and any overflow is recorded in ``varchar_overflow``.
  */
-#define v_copy(dest, src)                                                  \
-    ({                                                                     \
-        varchar_overflow = 0;                                              \
-        size_t __n = (src).len;                                            \
-        if (__n > V_SIZE(dest)) {                                          \
-            varchar_overflow = __n - V_SIZE(dest);                         \
-            V_WARN("Line %d : v_copy(%s, %s) : overflow : bytes required %zu > %zu capacity", \
-                __LINE__, #dest, #src, __n, V_SIZE(dest));                 \
-            __n = V_SIZE(dest);                                            \
-        }                                                                  \
-        memmove(V_BUF(dest), V_BUF(src), __n);                             \
-        __n;                                                               \
+#define s_copy(dest, src)                                                   \
+    ({                                                                      \
+        varchar_overflow = 0;                                               \
+        size_t __cap = S_SIZE(dest);                                        \
+        size_t __n = strlen(src);                                           \
+        if (__n >= __cap) {                                                 \
+            varchar_overflow = __n - (__cap - 1);                           \
+            V_WARN("Line %d : s_copy(%s, %s) : overflow : bytes required %zu > %zu capacity", \
+                  __LINE__, #dest, #src, __n, __cap);                       \
+            __n = __cap - 1;                                                \
+        }                                                                   \
+        memmove((dest), (src), __n);                                        \
+        (dest)[__n] = '\0';                                                \
+        __n;                                                                \
     })
 
 /*
- * v_strncpy() - Copy at most n characters from src to dest.
- * @dest: Destination VARCHAR that receives the data.
- * @src:  Source VARCHAR to copy from.
+ * s_strncpy() - Copy at most n characters from src to dest.
+ * @dest: Destination C string that receives the data.
+ * @src:  Source C string to copy from.
  * @n:    Maximum number of characters to copy.
  * 
  * Copies up to ``n`` characters from ``src`` into ``dest``.  If the requested
  * length exceeds the destination capacity the copy is truncated and the number
- * of bytes moved is returned.  ``dest.len`` remains unchanged and overflow is
- * reported via ``varchar_overflow``.
+ * of bytes moved is returned.  Overflow is reported via ``varchar_overflow``.
  */
-#define v_strncpy(dest, src, n)                                            \
-    ({                                                                     \
-        varchar_overflow = 0;                                              \
-        size_t __n = (n);                                                  \
-        if (__n > (src).len)                                               \
-            __n = (src).len;                                               \
-        if (__n > V_SIZE(dest)) {                                          \
-            varchar_overflow = __n - V_SIZE(dest);                         \
-            V_WARN("Line %d : v_strncpy(%s, %s, %u) : overflow : bytes required %zu > %zu capacity", \
-                __LINE__, #dest, #src, (n), __n, V_SIZE(dest));            \
-            __n = V_SIZE(dest);                                            \
-        }                                                                  \
-        memmove(V_BUF(dest), V_BUF(src), __n);                             \
-        __n;\
+#define s_strncpy(dest, src, n)                                             \
+    ({                                                                      \
+        varchar_overflow = 0;                                               \
+        size_t __cap = S_SIZE(dest);                                        \
+        size_t __n = (n);                                                   \
+        size_t __src_len = strlen(src);                                     \
+        if (__n > __src_len)                                                \
+            __n = __src_len;                                                \
+        if (__n >= __cap) {                                                 \
+            varchar_overflow = __n - (__cap - 1);                           \
+            V_WARN("Line %d : s_strncpy(%s, %s, %u) : overflow : bytes required %zu > %zu capacity", \
+                  __LINE__, #dest, #src, (unsigned)(n), __n, __cap);        \
+            __n = __cap - 1;                                                \
+        }                                                                   \
+        memmove((dest), (src), __n);                                        \
+        (dest)[__n] = '\0';                                                \
+        (int)__n;                                                           \
     })
 
 /*
- * v_strcat() - Append src to dest.
- * @dest: Destination VARCHAR that receives the data.
- * @src:  Source VARCHAR to append.
+ * s_strcat() - Append src to dest.
+ * @dest: Destination C string that receives the data.
+ * @src:  Source C string to append.
  *
  * Appends ``src`` to ``dest`` without NUL termination.  When ``dest`` does not
  * have enough unused space only the portion that fits is appended.  The
- * resulting ``len`` is increased by the number of bytes appended and that value
- * is returned.  Overflow information is stored in ``varchar_overflow``.
+ * resulting string length increases by the number of bytes appended and that
+ * value is returned.  Overflow information is stored in ``varchar_overflow``.
  */
-#define v_strcat(dest, src)                                        \
-    ({                                                             \
-        varchar_overflow = 0;                                      \
-        size_t __avail = v_unused_capacity(dest);                  \
-        size_t __n = (src).len;                                    \
-        if (__n > __avail) {                                       \
-            varchar_overflow = __n - __avail;                      \
-            V_WARN("Line %d : v_strcat(%s, %s) : overflow : bytes required %zu > %zu capacity", \
-                    __LINE__, #dest, #src, __n, V_SIZE(dest));     \
-            __n = __avail;                                         \
-        }                                                          \
-        memmove(V_BUF(dest) + (dest).len, V_BUF(src), __n);        \
-        (dest).len += __n;                                         \
-        (int)__n;                                                  \
+#define s_strcat(dest, src)                                         \
+    ({                                                              \
+        varchar_overflow = 0;                                       \
+        size_t __dlen = strnlen((dest), S_SIZE(dest));              \
+        size_t __avail = (__dlen < S_SIZE(dest))                    \
+                            ? S_SIZE(dest) - 1 - __dlen             \
+                            : 0;                                    \
+        size_t __n = strlen(src);                                   \
+        if (__n > __avail) {                                        \
+            varchar_overflow = __n - __avail;                       \
+            V_WARN("Line %d : s_strcat(%s, %s) : overflow : bytes required %zu > %zu capacity", \
+                  __LINE__, #dest, #src, __n, S_SIZE(dest));        \
+            __n = __avail;                                          \
+        }                                                           \
+        memmove((dest) + __dlen, (src), __n);                       \
+        (dest)[__dlen + __n] = '\0';                                \
+        (int)__n;                                                   \
     })
 
 /*
- * v_strncat() - Append at most n characters from src to dest.
+ * s_strncat() - Append at most n characters from src to dest.
  *
  * Concatenates up to ``n`` bytes from ``src``.  When space is insufficient the
- * data is truncated and only the part that fits is appended.  The destination
- * length increases by the number of bytes appended which is also returned.  Any
- * truncation is noted in ``varchar_overflow``.
+ * data is truncated and only the part that fits is appended.  The resulting
+ * string length increases by the number of bytes appended which is also returned.
+ * Any truncation is noted in ``varchar_overflow``.
  */
-#define v_strncat(dest, src, n)                                    \
-    ({                                                             \
-        varchar_overflow = 0;                                      \
-        size_t __avail = v_unused_capacity(dest);                  \
-        size_t __n = (n);                                          \
-        if (__n > (src).len)                                       \
-            __n = (src).len;                                       \
-        if (__n > __avail) {                                       \
-            varchar_overflow = __n - __avail;                      \
-            V_WARN("Line %d : v_strncat(%s, %s, %u) : overflow : bytes required %zu > %zu capacity", \
-                __LINE__, #dest, #src, (n), __n, V_SIZE(dest));    \
-            __n = __avail;                                         \
-        }                                                          \
-        memmove(V_BUF(dest) + (dest).len, V_BUF(src), __n);        \
-        (dest).len += __n;                                         \
-        (int)__n;                                                  \
+#define s_strncat(dest, src, n)                                     \
+    ({                                                              \
+        varchar_overflow = 0;                                       \
+        size_t __dlen = strnlen((dest), S_SIZE(dest));              \
+        size_t __avail = (__dlen < S_SIZE(dest))                    \
+                            ? S_SIZE(dest) - 1 - __dlen             \
+                            : 0;                                    \
+        size_t __n = (n);                                           \
+        size_t __src_len = strlen(src);                             \
+        if (__n > __src_len)                                        \
+            __n = __src_len;                                        \
+        if (__n > __avail) {                                        \
+            varchar_overflow = __n - __avail;                       \
+            V_WARN("Line %d : s_strncat(%s, %s, %u) : overflow : bytes required %zu > %zu capacity", \
+                  __LINE__, #dest, #src, (unsigned)(n), __n, S_SIZE(dest)); \
+            __n = __avail;                                          \
+        }                                                           \
+        memmove((dest) + __dlen, (src), __n);                       \
+        (dest)[__dlen + __n] = '\0';                                \
+        (int)__n;                                                   \
     })
 
 /*
- * v_ltrim() - Remove leading ASCII whitespace from a VARCHAR.
+ * s_ltrim() - Remove leading ASCII whitespace from a C string.
  *
  * Characters are shifted left in-place using ``memmove`` when leading
- * whitespace is detected.  ``len`` is adjusted to reflect the new size.
+ * whitespace is detected.
  */
-#define v_ltrim(v) do {                                            \
+#define s_ltrim(s) do {                                            \
+    size_t __len = strnlen((s), S_SIZE(s));                        \
     size_t i = 0;                                                  \
-    while (i < (v).len && isspace((unsigned char)V_BUF(v)[i]))     \
+    while (i < __len && isspace((unsigned char)(s)[i]))            \
         i++;                                                       \
     if (i > 0) {                                                   \
-        memmove(V_BUF(v), V_BUF(v) + i, (v).len - i);              \
-        (v).len -= i;                                              \
+        memmove((s), (s) + i, __len - i + 1);                      \
     }                                                              \
 } while (0)
 
 /*
- * v_rtrim() - Strip trailing ASCII whitespace from a VARCHAR.
+ * s_rtrim() - Strip trailing ASCII whitespace from a C string.
  *
- * The length is decremented while whitespace characters are found at the end
- * of the buffer.  Content is left in place; only ``len`` changes.
+ * Characters are removed from the end while whitespace is encountered.
  */
-#define v_rtrim(v) do {                                            \
-    while ((v).len > 0 &&                                          \
-           isspace((unsigned char)V_BUF(v)[(v).len - 1])) {        \
-        (v).len--;                                                 \
-    }                                                              \
+#define s_rtrim(s) do {                                            \
+    size_t __len = strnlen((s), S_SIZE(s));                        \
+    while (__len > 0 &&                                           \
+           isspace((unsigned char)(s)[__len - 1])) {               \
+        __len--;                                                  \
+    }                                                             \
+    (s)[__len] = '\0';                                            \
 } while (0)
 
 /*
- * v_trim() - Convenience wrapper to run both v_rtrim() and v_ltrim().
+ * s_trim() - Convenience wrapper to run both s_rtrim() and s_ltrim().
  *
  * Leading and trailing whitespace are removed as described by the individual
  * helpers.
  */
-#define v_trim(v)  \
-    do { v_rtrim(v); v_ltrim(v); } while (0)
+#define s_trim(s)  \
+    do { s_rtrim(s); s_ltrim(s); } while (0)
 
 /*
- * v_upper() - In-place ASCII uppercase conversion.
+ * s_upper() - In-place ASCII uppercase conversion.
  *
  * Each byte is converted with ``toupper`` using unsigned char promotion.
  */
-#define v_upper(v) do {                                  \
-    for (size_t i = 0; i < (v).len; i++)                 \
-        V_BUF(v)[i] = toupper((unsigned char)V_BUF(v)[i]); \
+#define s_upper(s) do {                                   \
+    for (size_t i = 0; (s)[i] != '\0'; i++)              \
+        (s)[i] = toupper((unsigned char)(s)[i]);          \
 } while (0)
 
 /*
- * v_lower() - In-place ASCII lowercase conversion.
+ * s_lower() - In-place ASCII lowercase conversion.
  *
- * Like ``v_upper`` but using ``tolower``.
+ * Like ``s_upper`` but using ``tolower``.
  */
 
-#define v_lower(v) do {                                  \
-    for (size_t i = 0; i < (v).len; i++)                 \
-        V_BUF(v)[i] = tolower((unsigned char)V_BUF(v)[i]); \
+#define s_lower(s) do {                                   \
+    for (size_t i = 0; (s)[i] != '\0'; i++)              \
+        (s)[i] = tolower((unsigned char)(s)[i]);          \
 } while (0)
 
-#endif /* VARCHAR_MACROS_V_H */
+#endif /* VARCHAR_MACROS_S_H */
