@@ -140,7 +140,6 @@ def transform(text, base=0, show=None, only=None):
 
     if only:
         only = set(o.replace('-', '_') for o in only)
-    text = replace_setlenz(text, base, show) if not only or 'setlenz' in only else text
     text = (
         replace_v_copy_1(text, base, show)
         if not only or 'v_copy_1' in only else text
@@ -158,6 +157,7 @@ def transform(text, base=0, show=None, only=None):
         replace_v_sprintf(text, base, show)
         if not only or 'v_sprintf' in only else text
     )
+    text = replace_setlenz(text, base, show) if not only or 'setlenz' in only else text
     text = replace_zsetlen(text, base, show) if not only or 'zsetlen' in only else text
     return text
 
@@ -243,7 +243,7 @@ def replace_setlenz(text, base=0, show=None):
             line = base + text.count("\n", 0, m.start()) + 1
             show("setlenz", line, m.group(0))
     return pattern.sub(
-        lambda m: "%sVARCHAR_SETLENZ(%s);" % (m.group('indent'), m.group('var')),
+        lambda m: "%szv_setlenz(%s);" % (m.group('indent'), m.group('var')),
         text,
     )
 
@@ -267,7 +267,7 @@ def replace_v_copy_1(text, base=0, show=None):
             line = base + text.count("\n", 0, m.start()) + 1
             show("v_copy_1", line, m.group(0))
     return pattern.sub(
-        lambda m: "%sVARCHAR_v_copy(%s, %s);" % (m.group('indent'), m.group('dst'), m.group('src')),
+        lambda m: "%szv_copy(%s, %s);" % (m.group('indent'), m.group('dst'), m.group('src')),
         text,
     )
 
@@ -293,7 +293,7 @@ def replace_v_copy_2(text, base=0, show=None):
             line = base + text.count("\n", 0, m.start()) + 1
             show("v_copy_1", line, m.group(0))
     return pattern.sub(
-        lambda m: "%sVARCHAR_zv_copy(%s, %s);" % (m.group('indent'), m.group('dst'), m.group('src')),
+        lambda m: "%szv_copy(%s, %s);" % (m.group('indent'), m.group('dst'), m.group('src')),
         text,
     )
 
@@ -315,7 +315,7 @@ def replace_v_copy_3(text, base=0, show=None):
             line = base + text.count("\n", 0, m.start()) + 1
             show("v_copy_2", line, m.group(0))
     return pattern.sub(
-        lambda m: "%sVARCHAR_zv_copy(%s, %s);" % (m.group('indent'), m.group('dst'), m.group('src')),
+        lambda m: "%szv_copy(%s, %s);" % (m.group('indent'), m.group('dst'), m.group('src')),
         text,
     )
 
@@ -338,7 +338,7 @@ def replace_vp_copy(text, base=0, show=None):
             line = base + text.count("\n", 0, m.start()) + 1
             show("zvp_copy", line, m.group(0))
     return pattern.sub(
-        lambda m: "%sVARCHAR_zvp_copy(%s, \"%s\");" % (m.group('indent'), m.group('foo'), m.group('lit')),
+        lambda m: "%szvp_copy(%s, \"%s\");" % (m.group('indent'), m.group('foo'), m.group('lit')),
         text,
     )
 
@@ -360,7 +360,7 @@ def replace_v_sprintf(text, base=0, show=None):
             line = base + text.count("\n", 0, m.start()) + 1
             show("v_sprintf", line, m.group(0))
     return pattern.sub(
-        lambda m: "%sVARCHAR_sprintf(%s, %s);" % (m.group('indent'), m.group('foo'), m.group('args')),
+        lambda m: "%sv_sprintf(%s, %s);" % (m.group('indent'), m.group('foo'), m.group('args')),
         text,
     )
 
@@ -383,7 +383,7 @@ def replace_zsetlen(text, base=0, show=None):
             line = base + text.count("\n", 0, m.start()) + 1
             show("zsetlen", line, m.group(0))
     return pattern.sub(
-        lambda m: "%sVARCHAR_ZSETLEN(%s);" % (m.group('indent'), m.group('dst')),
+        lambda m: "%szv_zsetlen(%s);" % (m.group('indent'), m.group('dst')),
         text,
     )
 
