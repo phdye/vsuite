@@ -134,6 +134,9 @@ if (!v_valid(tmp)) { /* handle overflow */ }
 - `v_clear(v)` – clear contents without touching the buffer.
 - `v_copy(dest, src)` – copy from `src` into `dest`, returning bytes copied or
   zero on failure.
+- `v_strncpy(dest, src, n)` – copy up to `n` bytes from `src`.
+- `v_strcat(dest, src)` – append `src` to `dest`.
+- `v_strncat(dest, src, n)` – append at most `n` bytes from `src`.
 
 ```c
 VARCHAR(a, 8); VARCHAR(b, 8);
@@ -154,6 +157,7 @@ v_trim(tmp);                    /* results in "hi" */
 
 - `v_upper(v)` and `v_lower(v)` – convert case in place.
 - `v_sprintf(v, fmt, ...)` – printf-style formatting into `v`.
+- `v_sprintf_fcn(buf, cap, lenp, fmt, ...)` – functional form used by `v_sprintf`.
 
 ```c
 strcpy(tmp.arr, "Abc");
@@ -220,6 +224,22 @@ ensures the destination always contains a NUL terminator.
 VARCHAR(v2, 4);
 zvf_copy(v2, "ab");
 ```
+#### `string.h`
+
+- `S_SIZE(s)` – capacity of a fixed C string.
+- `s_has_capacity(s, n)` – true when `s` can hold `n` bytes.
+- `s_unused_capacity(s)` – remaining free space in `s`.
+- `s_has_unused_capacity(s, n)` – test for at least `n` additional bytes.
+- `s_init(s)` – reset the buffer to an empty string.
+- `s_valid(s)` – verify the buffer contains a terminator within bounds.
+- `s_clear(s)` – zero out the entire buffer.
+- `s_copy(dest, src)` – copy a C string into `dest` with truncation.
+- `s_strncpy(dest, src, n)` – copy up to `n` bytes from `src`.
+- `s_strcat(dest, src)` – append `src` to `dest`.
+- `s_strncat(dest, src, n)` – append up to `n` bytes from `src`.
+- `s_ltrim(s)`, `s_rtrim(s)`, `s_trim(s)` – remove leading and/or trailing whitespace.
+- `s_upper(s)`, `s_lower(s)` – convert case in place.
+
 
 ### Zero-terminated variant (`zvarchar.h`)
 
@@ -234,6 +254,9 @@ NUL terminated.
 - `zv_upper(v)`, `zv_lower(v)` – case conversion.
 - `ZV_CAPACITY(v)` – usable size excluding the terminator.
 - `zv_has_capacity(v, n)` – test for room for `n` characters.
+- `zv_strncpy(dest, src, n)` – copy at most `n` bytes and keep the terminator.
+- `zv_strcat(dest, src)` – append while preserving termination.
+- `zv_strncat(dest, src, n)` – append up to `n` bytes and terminate.
 
 ```c
 VARCHAR(z, 4);
