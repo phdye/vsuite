@@ -240,10 +240,12 @@
  *
  * Each byte is converted with ``toupper`` using unsigned char promotion.
  */
-#define s_upper(s) do {                                   \
-    for (size_t i = 0; (s)[i] != '\0'; i++)              \
-        (s)[i] = toupper((unsigned char)(s)[i]);          \
-} while (0)
+#define s_upper(s) \
+    do { \
+        for (char *p = s; *p != '\0'; p++) { \
+            *p = toupper((unsigned char)*p); \
+        } \
+    } while (0)
 
 /*
  * s_lower() - In-place ASCII lowercase conversion.
