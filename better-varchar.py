@@ -10,8 +10,8 @@ expression search/replace, so the input is expected to be valid C code.
 
 The following conversions are currently supported:
 
-``VARCHAR_SETLENZ``
-    ``FOO.arr[FOO.len] = '\0';`` becomes ``VARCHAR_SETLENZ(FOO);``.
+``zv_setlenz``
+    ``FOO.arr[FOO.len] = '\0';`` becomes ``zv_setlenz(FOO);``.
 
 ``v_copy``
     ``strcpy(FOO.arr, BAR.arr);`` followed by
@@ -22,8 +22,8 @@ The following conversions are currently supported:
 ``vp_copy``
     ``strcpy(FOO.arr, "literal");`` becomes ``vp_copy(FOO, "literal");``.
 
-``VARCHAR_sprintf``
-    ``sprintf(FOO.arr, fmt, ...);`` becomes ``VARCHAR_sprintf(FOO, fmt, ...);``.
+``v_sprintf``
+    ``sprintf(FOO.arr, fmt, ...);`` becomes ``v_sprintf(FOO, fmt, ...);``.
 
 Usage:
     better-varchar.py [options] <input-pc-file> [<output-pc-file>]
@@ -226,7 +226,7 @@ _VAR = r"[-A-Za-z0-9_.->\[\]]+"
 
 
 def replace_setlenz(text, base=0, show=None):
-    """Convert NUL termination assignments to ``VARCHAR_SETLENZ``.
+    """Convert NUL termination assignments to ``zv_setlenz``.
 
     Matches lines of the form ``VAR.arr[VAR.len] = '\0';``.  The variable
     name is captured so we can preserve any indentation and reuse the
@@ -253,7 +253,7 @@ def replace_v_copy_1(text, base=0, show=None):
 
     Matches a sequence that copies ``src`` to ``dst`` using ``strcpy`` and then
     derives ``dst.len`` via ``strlen`` followed by explicit NUL termination.  The
-    entire block is replaced with ``VARCHAR_v_copy(dst, src);``.
+    entire block is replaced with ``v_copy(dst, src);``.
     """
 
     pattern = re.compile(
@@ -344,7 +344,7 @@ def replace_vp_copy(text, base=0, show=None):
 
 
 def replace_v_sprintf(text, base=0, show=None):
-    """Turn ``sprintf`` calls operating on ``VARCHAR`` buffers into ``VARCHAR_sprintf``.
+    """Turn ``sprintf`` calls operating on ``VARCHAR`` buffers into ``v_sprintf``.
 
     The function captures everything after the destination buffer so that
     arbitrary format strings and argument lists are preserved.
@@ -366,10 +366,10 @@ def replace_v_sprintf(text, base=0, show=None):
 
 
 def replace_zsetlen(text, base=0, show=None):
-    """Convert strlen-based length assignments to ``VARCHAR_ZSETLEN``.
+    """Convert strlen-based length assignments to ``zv_zsetlen``.
 
     This handles statements like ``VAR.len = strlen((char*) VAR.arr);`` and
-    emits ``VARCHAR_ZSETLEN(VAR);``.  The source variable used inside
+    emits ``zv_zsetlen(VAR);``.  The source variable used inside
     ``strlen`` is ignored so the pattern applies even when the left-hand side
     and argument differ.
     """

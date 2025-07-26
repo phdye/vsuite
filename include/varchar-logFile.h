@@ -121,7 +121,7 @@ extern FILE *logFile;
                     "Line %d : v_copy(%s, %s) overflow : destination capacity %u < %u source length\n\n", \
                     __LINE__, #dst, #src, siz, (src).len);        \
         }                                                         \
-        v_copy((dst), (src));                                     \
+        /* logging only: do not copy */                           \
     } while (0)
 
 /*

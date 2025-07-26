@@ -306,14 +306,14 @@ static inline int v_sprintf_fcn(char *dst_buf, size_t capacity,
         return n;
     }
 
-    if ((unsigned) n > capacity) {
-        varchar_overflow = n - capacity;
-        V_WARN("Line %d : v_sprintf_fcn(%s, fmt, ...) : overflow : bytes required %d > %zu capacity : fmt = \"%s\"", 
+    if ((unsigned) n >= capacity) {
+        varchar_overflow = n - (capacity - 1);
+        V_WARN("Line %d : v_sprintf_fcn(%s, fmt, ...) : overflow : bytes required %d > %zu capacity : fmt = \"%s\"",
                 __LINE__, "dst_buf", n, capacity, fmt);
-        n = capacity;
+        n = capacity - 1;
     }
 
-    // vsnprintf does not includes the terminator in the count.
+    // vsnprintf does not include the terminator in the returned count.
 
     *dst_len = (unsigned short)n;
     return n;

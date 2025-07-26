@@ -361,9 +361,9 @@ static void test_mass_case(void) {
 static void test_v_sprintf_basic(void) {
     VARCHAR(v, 16);
     int n = v_sprintf(v, "hi %d", 42);
-    int ok = (n == 4 && v.len == 4 && memcmp(v.arr, "hi 42", 5) == 0);
+    int ok = (n == 5 && v.len == 5 && memcmp(v.arr, "hi 42", 5) == 0);
     CHECK_MSG("v_sprintf basic", ok,
-              "expected n=4 len=4 text='hi 42' got n=%d len=%u text='%.*s'",
+              "expected n=5 len=5 text='hi 42' got n=%d len=%u text='%.*s'",
               n, v.len, v.len, v.arr);
 }
 
