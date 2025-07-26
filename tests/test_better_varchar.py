@@ -48,8 +48,13 @@ class TestBetterVarchar(unittest.TestCase):
         self.assertEqual(args.only, ['setlenz'])
 
     def test_parse_show_with_output_error(self):
-        with self.assertRaises(SystemExit):
-            better_varchar.parse_args(['--show', 'in.pc', 'out.pc'])
+        import io
+        import contextlib
+
+        buf = io.StringIO()
+        with contextlib.redirect_stderr(buf):
+            with self.assertRaises(SystemExit):
+                better_varchar.parse_args(['--show', 'in.pc', 'out.pc'])
 
     def test_parse_show_with_lines(self):
         args = better_varchar.parse_args([
@@ -74,13 +79,18 @@ class TestBetterVarchar(unittest.TestCase):
 
     def test_show_no_write(self):
         import tempfile
+        import io
+        import contextlib
+
         tmpdir = tempfile.mkdtemp()
         try:
             in_path = os.path.join(tmpdir, 'in.pc')
             out_path = os.path.join(tmpdir, 'out.pc')
             with open(in_path, 'w') as fh:
                 fh.write("FOO.arr[FOO.len] = '\0';\n")
-            better_varchar.main(['--show', in_path])
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                better_varchar.main(['--show', in_path])
             self.assertFalse(os.path.exists(out_path))
         finally:
             if os.path.exists(in_path):
