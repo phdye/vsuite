@@ -52,14 +52,15 @@
 #define s_init(s)                                                          \
     ({                                                                     \
         size_t siz = S_SIZE(s);                                            \
+        size_t n = 1;                                                      \
         if (siz > 0) {                                                     \
             (s)[0] = '\0';                                                 \
-            1;                                                             \
         } else {                                                           \
             V_WARN("Line %d : s_init(%s) : overflow : size 0 string cannot be initialized.", \
                 __LINE__, #s);                                             \
-            0;                                                             \
+            n = 0;                                                         \
         }                                                                  \
+        n;                                                                 \
     })
 
 /*
