@@ -27,15 +27,74 @@
     (((v).len < V_SIZE(v)) && (V_BUF(v)[(v).len] == '\0'))
 
 /*
- * zv_zero_terminate() - Ensure a VARCHAR is properly NUL terminated.  If the length
+ * zv_setlenz() - Ensure a VARCHAR is properly NUL terminated.  If the length
  * exceeds or equals the buffer size, the string is truncated, then terminated.
+ * 
+ * 'setlenz' - set zero-byte terminator using .len
  */
-#define zv_zero_terminate(v)                     \
-    do {                                         \
-        if ((v).len >= V_SIZE(v))                \
-            (v).len = V_SIZE(v) - 1;             \
-        V_BUF(v)[(v).len] = '\0';                \
+#define zv_setlenz(v) \
+    do { \
+        if ( !v_valid(v)) { \
+            V_WARN("Line %d : VARCHAR_SETLENZ:  %s : length %u exceeds allocated size %zu : truncating to actual size\n\n", \
+                __LINE__, #v, (v).len, sizeof((v).arr)); \
+            (v).len = V_SIZE(v); \
+        } else { \
+            if ( !v_has_unused_capacity(v, 1)) { \
+                V_WARN("Line %d : VARCHAR_SETLENZ(%s) : does not have an unused byte for the string terminator\n\n", \
+                    __LINE__, #v); \
+                V_WARN("Line %d : VARCHAR_SETLENZ(%s) : len %u == %zu size (presumably equal) : will lose trailing '%c'\n\n", \
+                    __LINE__, #v, (v).len, V_SIZE(v), V_BUF(v)[V_SIZE(v)-1] ); \
+                (v).len = V_SIZE(v) - 1; \
+            } \
+        } \
+        V_BUF(v)[(v).len] = '\0'; \
     } while (0)
+
+#define zv_zero_terminate(v) zv_setlenz(v)
+
+/*
+ * FIND_FIRST_NUL_BYTE() - Locate the first NUL in ``arr``.
+ * @arr:     Character array to scan.
+ * @max_len: Maximum number of bytes to examine.
+ *
+ * Returns a pointer to the first ``'\0'`` within the given range or ``NULL``
+ * when none is present.
+ */
+#define FIND_FIRST_NUL_BYTE(arr,max_len)       \
+    ({                                         \
+        char * found = NULL;                   \
+        for (size_t i = 0; i < max_len; ++i) { \
+            if (arr[i] == '\0') {              \
+                found = arr + i;               \
+                break;                         \
+            }                                  \
+        }                                      \
+        found;                                 \
+    })
+
+/*
+ * zv_zsetlen() - Determine the length of a NUL terminated VARCHAR.
+ * @v: VARCHAR variable whose ``len`` should reflect the first terminator.
+ *
+ * Scans the buffer up to its declared size looking for ``'\0'``.  ``v.len`` is
+ * updated to the index of that terminator.  When none is found a diagnostic is
+ * written and ``v.len`` becomes an undefined large value, but the last array
+ * element is forced to ``'\0'`` so subsequent operations remain bounded.
+ * 
+ *  'zsetlen' - use zero-byte terminator to set .len
+ */
+#define zv_zsetlen(v) \
+    { \
+        unsigned siz = sizeof((v).arr); \
+        char *nul = FIND_FIRST_NUL_BYTE((v).arr, siz); \
+        if (nul == NULL) { \
+            V_WARN("Line %d : zv_zsetlen(%s) : No NUL byte found within %u sizeof(.arr) bytes : value '%s'\n", \
+                    __LINE__, #v, siz, (v).arr); \
+            nul = (v).arr + siz - 1; /* point to the last valid byte */ \
+        } \
+        (v).len = (unsigned short)((unsigned long)nul - (unsigned long)(v).arr); \
+        (v).arr[(v).len] = '\0'; \
+    }
 
 /*
  * zv_init() - Reset a zvarchar to an empty terminated string.
@@ -60,8 +119,8 @@
  * too small it is truncated to leave space for the terminator and zero is
  * returned.
  */
-#define zv_copy(dest, src)                                           \
-    ({                                                               \
+#define zv_copy(dest, src)                                          \
+    ({                                                              \
         varchar_overflow = 0;                                       \
         size_t __cap = ZV_CAPACITY(dest);                           \
         size_t __n = (src).len;                                     \
@@ -81,7 +140,7 @@
 /*
  * zv_strncpy() - Copy at most n characters and ensure termination.
  */
-#define zv_strncpy(dest, src, n)                                    \
+#define zv_strncpy(dest, src, n)                                   \
     ({                                                             \
         varchar_overflow = 0;                                      \
         size_t __cap = ZV_CAPACITY(dest);                          \
@@ -105,8 +164,8 @@
  * zv_strcat() - Append src to dest with preserved terminator.
  */
 #define zv_strcat(dest, src)                                      \
-    ({                                                           \
-        varchar_overflow = 0;                                    \
+    ({                                                            \
+        varchar_overflow = 0;                                     \
         size_t __avail = (V_SIZE(dest) > (dest).len)              \
                             ? V_SIZE(dest) - 1 - (dest).len       \
                             : 0;                                  \
@@ -127,12 +186,12 @@
 /*
  * zv_strncat() - Append at most n characters from src to dest and terminate.
  */
-#define zv_strncat(dest, src, n)                                    \
+#define zv_strncat(dest, src, n)                                   \
     ({                                                             \
         varchar_overflow = 0;                                      \
-        size_t __avail = (V_SIZE(dest) > (dest).len)                \
-                            ? V_SIZE(dest) - 1 - (dest).len         \
-                            : 0;                                    \
+        size_t __avail = (V_SIZE(dest) > (dest).len)               \
+                            ? V_SIZE(dest) - 1 - (dest).len        \
+                            : 0;                                   \
         size_t __n = (n);                                          \
         if (__n > (src).len)                                       \
             __n = (src).len;                                       \
