@@ -1,0 +1,718 @@
+**                                      5. Overflow: char temp_prod[45]; temp_prod.arr[45] = '\0'
+        sizeof(gl_period.arr) - 1);
+        fprintf(rptFile,"\n\nERROR - THERE ARE NO PENDING REMITTANCES ON TVAGLPOSINGSTATUS FOR GL PERIOD %s TRANSACTION TYPE 21C.  EXITING.\n\n", gl_period.arr);
+        fprintf(rptFile,"\n\nERROR - THERE ARE NO PENDING REMITTANCES ON TVAGLPOSINGSTATUS FOR GL PERIOD %s TRANSACTION TYPE 21C - WEEKLY.  EXITING.\n\n", gl_period.arr);
+          v_sprintf(product_list_ptr->ferc_product, "%s%s%s",product_list_ptr->ferc_acct.arr,product_list_ptr->nat_acct.arr,product_list_ptr->product.arr);
+     fprintf(rptFile, "No PENDING remittances on TVAGLPOSTINGSTATUS for gl period: %s\n", gl_period.arr);
+     printf( "No PENDING remittances on TVAGLPOSTINGSTATUS for gl period: %s\n", gl_period.arr);
+     invoice_no.arr[invoice_no.len] = '\0';
+     inv_rev_no.arr[inv_rev_no.len] = '\0';
+     customer_id.arr[customer_id.len] = '\0';
+     csc_name.arr[csc_name.len] = '\0';
+     glperiod.arr[glperiod.len] = '\0';
+                   product.arr[product.len] = '\0';
+                   amount.arr[amount.len] = '\0';
+                   quantity.arr[quantity.len] = '\0';
+                         fprintf(rptFile, "GL account/Task/Ependiture does not exist in TVAGLACCOUNT for %s\n", product.arr);
+                         entity.arr[entity.len] = '\0';
+                         resp_org.arr[resp_org.len] = '\0';
+                         perf_org.arr[perf_org.len] = '\0';
+                         location.arr[location.len] = '\0';
+                         nat_acct.arr[nat_acct.len] = '\0';
+                         ferc_acct.arr[ferc_acct.len] = '\0';
+                         intercomp.arr[intercomp.len] = '\0';
+                         rpt_class.arr[rpt_class.len] = '\0';
+                         future2.arr[future2.len] = '\0';
+                         acct_flag.arr[acct_flag.len] = '\0';
+                         gl_post_desc.arr[gl_post_desc.len] = '\0';
+                         post_jv_stats.arr[post_jv_stats.len] = '\0';
+                         jv_type.arr[jv_type.len] = '\0';
+                   v_sprintf(invoice_list_ptr->product_list_tail->ferc_product, "%s%s%s",ferc_acct.arr,nat_acct.arr,product.arr);
+                   if(strcmp((char*)entity.arr, "00") != 0) 
+                           fprintf(rptFile, "1 GL account does not exist in TVAGLACCOUNT for %s\n",  product.arr);
+                            entity.arr[entity.len] = '\0';
+                            resp_org.arr[resp_org.len] = '\0';
+                            perf_org.arr[perf_org.len] = '\0';
+                            location.arr[location.len] = '\0';
+                            nat_acct.arr[nat_acct.len] = '\0';
+                            ferc_acct.arr[ferc_acct.len] = '\0';
+                            intercomp.arr[intercomp.len] = '\0';
+                            rpt_class.arr[rpt_class.len] = '\0';
+                            future2.arr[future2.len] = '\0';
+                            acct_flag.arr[acct_flag.len] = '\0';
+                            gl_post_desc.arr[gl_post_desc.len] = '\0';
+                         gl_post_desc.arr[gl_post_desc.len] = '\0';
+    printf("REMITTANCE   = %s\n",invoice_list_ptr->invoice_no.arr);
+      printf("PRODUCT   = %s\n",product_list_ptr->product.arr);
+      printf("AMOUNT    = %s\n",product_list_ptr->amount.arr);
+      printf("QUANTI    = %s\n",product_list_ptr->quantity.arr);
+      printf("FERC      = %s\n",product_list_ptr->ferc_acct.arr);
+      printf("F1        = %s\n",product_list_ptr->rpt_class.arr);
+  fprintf(rptFile,"%-40s   REVISION: %s\n", invoice_list_tail->invoice_no.arr, invoice_list_tail->inv_rev_no.arr);
+                   product.arr[product.len] = '\0';
+                   trans_type.arr[trans_type.len] = '\0';
+                   trade_type.arr[trade_type.len] = '\0';
+                   opt_type.arr[opt_type.len] = '\0';
+                   amount.arr[amount.len] = '\0';
+                   quantity.arr[quantity.len] = '\0';
+                   net_flg.arr[net_flg.len] = '\0';
+                   sign = amount.arr[0];
+                   if((strcmp(product.arr, "LiqDamages") == 0) && (sign == '-'))
+                   else if((strcmp(product.arr, "LiqDamages") == 0) && (sign != '-'))
+                      fprintf(rptFile, "TEST GL account does not exist in TVAGLACCOUNT for %s %s %s %s %s %s\n",opt_type.arr, trans_type.arr, trade_type.arr, customer_type_code.arr, product.arr, csc_name.arr);
+                      entity.arr[entity.len] = '\0';
+                      resp_org.arr[resp_org.len] = '\0';
+                      perf_org.arr[perf_org.len] = '\0';
+                      location.arr[location.len] = '\0';
+                      nat_acct.arr[nat_acct.len] = '\0';
+                      ferc_acct.arr[ferc_acct.len] = '\0';
+                      intercomp.arr[intercomp.len] = '\0';
+                      rpt_class.arr[rpt_class.len] = '\0';
+                      future2.arr[future2.len] = '\0';
+                      acct_flag.arr[acct_flag.len] = '\0';
+                      gl_post_desc.arr[gl_post_desc.len] = '\0';
+                      credit_debit.arr[credit_debit.len] = '\0';
+                      post_jv_stats.arr[post_jv_stats.len] = '\0';
+                      jv_type.arr[jv_type.len] = '\0';
+                      billing_acct_flg.arr[billing_acct_flg.len] = '\0';
+                   if(strcmp((char*)jv_type.arr,"21B ") == 0)
+                      if((strcmp(product.arr,"POWER_QUALITY_MONITORING_EST") == 0) || 
+                         (strcmp(product.arr,"METERING_O&M_EST") == 0) ||
+                         (strcmp(product.arr,"TransOffset") == 0))
+                          sscanf((char*)invoice_list_ptr->product_list_tail->amount.arr, "%lf", &temp_amount);
+                      if((strcmp((char*)entity.arr, "00") != 0) && (strcmp((char*)net_flg.arr,"N") == 0))
+                         if(strcmp((char*)trans_type.arr,"PURCHASE") == 0)
+                         else if(strcmp((char*)trans_type.arr,"SALE") == 0)
+                           fprintf(rptFile, "2 GL account does not exist in TVAGLACCOUNT for %s %s %s\n", customer_type_code.arr, product.arr, csc_name.arr);
+                            entity.arr[entity.len] = '\0';
+                            resp_org.arr[resp_org.len] = '\0';
+                            perf_org.arr[perf_org.len] = '\0';
+                            location.arr[location.len] = '\0';
+                            nat_acct.arr[nat_acct.len] = '\0';
+                            ferc_acct.arr[ferc_acct.len] = '\0';
+                            intercomp.arr[intercomp.len] = '\0';
+                            rpt_class.arr[rpt_class.len] = '\0';
+                            future2.arr[future2.len] = '\0';
+                            acct_flag.arr[acct_flag.len] = '\0';
+                            gl_post_desc.arr[gl_post_desc.len] = '\0';
+                         gl_post_desc.arr[gl_post_desc.len] = '\0';
+                         billing_acct_flg.arr[billing_acct_flg.len] = '\0';
+                   product.arr[product.len] = '\0';
+                   trans_type.arr[trans_type.len] = '\0';
+                   trade_type.arr[trade_type.len] = '\0';
+                   amount.arr[amount.len] = '\0';
+                   account_id.arr[account_id.len] = '\0';
+                   override_start.arr[override_start.len] = '\0';
+                   override_stop.arr[override_stop.len] = '\0';
+                   opt_type.arr[3] = '\0';
+                      quantity.arr[quantity.len] = '\0';
+                      fprintf(rptFile, "3 GL account does not exist in TVAGLACCOUNT for %s %s %s\n", customer_type_code.arr, product.arr, csc_name.arr);
+                  fprintf(rptFile, "3a trans trade opt %s %s %s\n", trans_type.arr, trade_type.arr, opt_type.arr);
+                      entity.arr[entity.len] = '\0';
+                      resp_org.arr[resp_org.len] = '\0';
+                      perf_org.arr[perf_org.len] = '\0';
+                      location.arr[location.len] = '\0';
+                      nat_acct.arr[nat_acct.len] = '\0';
+                      ferc_acct.arr[ferc_acct.len] = '\0';
+                      intercomp.arr[intercomp.len] = '\0';
+                      rpt_class.arr[rpt_class.len] = '\0';
+                      future2.arr[future2.len] = '\0';
+                      acct_flag.arr[acct_flag.len] = '\0';
+                      gl_post_desc.arr[gl_post_desc.len] = '\0';
+                      credit_debit.arr[credit_debit.len] = '\0';
+                      post_jv_stats.arr[post_jv_stats.len] = '\0';
+                      jv_type.arr[jv_type.len] = '\0';
+                      billing_acct_flg.arr[billing_acct_flg.len] = '\0';
+                   if(strcmp((char*)jv_type.arr,"21B ") == 0)
+                      if((strcmp(product.arr,"POWER_QUALITY_MONITORING_EST") == 0) || 
+                         (strcmp(product.arr,"METERING_O&M_EST") == 0) ||
+                         (strcmp(product.arr,"TransOffset") == 0))
+                          sscanf((char*)invoice_list_ptr->product_list_tail->amount.arr, "%lf", &temp_amount);
+                      if(strcmp((char*)entity.arr, "00") != 0)
+                         if(strcmp((char*)trans_type.arr,"PURCHASE") == 0)
+                         else if(strcmp((char*)trans_type.arr,"SALE") == 0)
+                           fprintf(rptFile, "4 GL account does not exist in TVAGLACCOUNT for %s %s %s\n", customer_type_code.arr, product.arr, csc_name.arr);
+                            entity.arr[entity.len] = '\0';
+                            resp_org.arr[resp_org.len] = '\0';
+                            perf_org.arr[perf_org.len] = '\0';
+                            location.arr[location.len] = '\0';
+                            nat_acct.arr[nat_acct.len] = '\0';
+                            ferc_acct.arr[ferc_acct.len] = '\0';
+                            intercomp.arr[intercomp.len] = '\0';
+                            rpt_class.arr[rpt_class.len] = '\0';
+                            future2.arr[future2.len] = '\0';
+                            acct_flag.arr[acct_flag.len] = '\0';
+                            gl_post_desc.arr[gl_post_desc.len] = '\0';
+    amount_B_1.arr[amount_B_1.len] = '\0';
+    product_B_1.arr[product_B_1.len] = '\0';
+    amount_B_2.arr[amount_B_2.len] = '\0';
+    product_B_2.arr[product_B_2.len] = '\0';
+    amount_B_3.arr[amount_B_3.len] = '\0';
+    product_B_3.arr[product_B_3.len] = '\0';
+    amount_B_4.arr[amount_B_4.len] = '\0';
+    product_B_4.arr[product_B_4.len] = '\0';
+    amount_B_5.arr[amount_B_5.len] = '\0';
+    product_B_5.arr[product_B_5.len] = '\0';
+    amount_B_6.arr[amount_B_6.len] = '\0';
+    product_B_6.arr[product_B_6.len] = '\0';
+                           trans_offset_amt += atof((char*)amount_B_1.arr);
+                           trans_offset_amt += atof((char*)amount_B_2.arr);
+                           trans_offset_amt += atof((char*)amount_B_3.arr);
+         entity.arr[entity.len] = '\0';
+         resp_org.arr[resp_org.len] = '\0';
+         perf_org.arr[perf_org.len] = '\0';
+         location.arr[location.len] = '\0';
+         nat_acct.arr[nat_acct.len] = '\0';
+         ferc_acct.arr[ferc_acct.len] = '\0';
+         intercomp.arr[intercomp.len] = '\0';
+         rpt_class.arr[rpt_class.len] = '\0';
+         future2.arr[future2.len] = '\0';
+         acct_flag.arr[acct_flag.len] = '\0';
+         gl_post_desc.arr[gl_post_desc.len] = '\0';
+         credit_debit.arr[credit_debit.len] = '\0';
+         post_jv_stats.arr[post_jv_stats.len] = '\0';
+         jv_type.arr[jv_type.len] = '\0';
+    amount_B_1.arr[amount_B_1.len] = '\0';
+    product_B_1.arr[product_B_1.len] = '\0';
+    amount_B_2.arr[amount_B_2.len] = '\0';
+    product_B_2.arr[product_B_2.len] = '\0';
+    amount_B_3.arr[amount_B_3.len] = '\0';
+    product_B_3.arr[product_B_3.len] = '\0';
+                           emerg_trans_offset_amt += atof((char*)amount_B_1.arr);
+                           emerg_trans_offset_amt += atof((char*)amount_B_2.arr);
+                           emerg_trans_offset_amt += atof((char*)amount_B_3.arr);
+         entity.arr[entity.len] = '\0';
+         resp_org.arr[resp_org.len] = '\0';
+         perf_org.arr[perf_org.len] = '\0';
+         location.arr[location.len] = '\0';
+         nat_acct.arr[nat_acct.len] = '\0';
+         ferc_acct.arr[ferc_acct.len] = '\0';
+         intercomp.arr[intercomp.len] = '\0';
+         rpt_class.arr[rpt_class.len] = '\0';
+         future2.arr[future2.len] = '\0';
+         acct_flag.arr[acct_flag.len] = '\0';
+         gl_post_desc.arr[gl_post_desc.len] = '\0';
+         credit_debit.arr[credit_debit.len] = '\0';
+         post_jv_stats.arr[post_jv_stats.len] = '\0';
+         jv_type.arr[jv_type.len] = '\0';
+                   contract_no.arr[contract_no.len] = '\0';
+                 entity.arr[entity.len] = '\0';
+                 resp_org.arr[resp_org.len] = '\0';
+                 perf_org.arr[perf_org.len] = '\0';
+                 location.arr[location.len] = '\0';
+                 nat_acct.arr[nat_acct.len] = '\0';
+                 ferc_acct.arr[ferc_acct.len] = '\0';
+                 intercomp.arr[intercomp.len] = '\0';
+                 rpt_class.arr[rpt_class.len] = '\0';
+                 future2.arr[future2.len] = '\0';
+                 acct_flag.arr[acct_flag.len] = '\0';
+                 gl_post_desc.arr[gl_post_desc.len] = '\0';
+                 credit_debit.arr[credit_debit.len] = '\0';
+                 post_jv_stats.arr[post_jv_stats.len] = '\0';
+                 jv_type.arr[jv_type.len] = '\0';
+             strcpy((char*)invoice_list_tail->product_list_tail->amount.arr, amount_net);
+                 entity.arr[entity.len] = '\0';
+                 resp_org.arr[resp_org.len] = '\0';
+                 perf_org.arr[perf_org.len] = '\0';
+                 location.arr[location.len] = '\0';
+                 nat_acct.arr[nat_acct.len] = '\0';
+                 ferc_acct.arr[ferc_acct.len] = '\0';
+                 intercomp.arr[intercomp.len] = '\0';
+                 rpt_class.arr[rpt_class.len] = '\0';
+                 future2.arr[future2.len] = '\0';
+                 acct_flag.arr[acct_flag.len] = '\0';
+                 gl_post_desc.arr[gl_post_desc.len] = '\0';
+                 credit_debit.arr[credit_debit.len] = '\0';
+                 post_jv_stats.arr[post_jv_stats.len] = '\0';
+                 jv_type.arr[jv_type.len] = '\0';
+             strcpy((char*)invoice_list_tail->product_list_tail->amount.arr, amount_net);
+    printf("********************REMITTANCE: %s\n",invoice_list_ptr->invoice_no.arr);
+      printf("PRODUCT   = %s\n",product_list_ptr->product.arr);
+      printf("AMOUNT    = %s\n",product_list_ptr->amount.arr);
+      printf("QUANTI    = %s\n",product_list_ptr->quantity.arr);
+      printf("ENTI      = %s\n",product_list_ptr->entity.arr);
+      printf("RESP      = %s\n",product_list_ptr->resp_org.arr);
+      printf("PERF      = %s\n",product_list_ptr->perf_org.arr);
+      printf("LOCA      = %s\n",product_list_ptr->location.arr);
+      printf("NATU      = %s\n",product_list_ptr->nat_acct.arr);
+      printf("FERC      = %s\n",product_list_ptr->ferc_acct.arr);
+      printf("INTE      = %s\n",product_list_ptr->intercomp.arr);
+      printf("REPO      = %s\n",product_list_ptr->rpt_class.arr);
+      printf("FUTU      = %s\n",product_list_ptr->future2.arr);
+      printf("TRANS TYPE= %s\n",product_list_ptr->trans_type.arr);
+      printf("TRADE TYPE= %s\n",product_list_ptr->trade_type.arr);
+      printf("OPT TYPE  = %s\n",product_list_ptr->opt_type.arr);
+      printf("BILLFLG   = %s\n",product_list_ptr->billing_acct_flg.arr);
+      printf("CRE/DEB   = %s\n",product_list_ptr->credit_debit.arr);
+      printf("STAT      = %s\n",product_list_ptr->post_jv_stats.arr);
+      printf("NET       = %s\n\n",product_list_ptr->net_flg.arr);
+    fprintf(rptFile,"\n\nThere are no PENDING remittances on TVAGLPOSTINGSTATUS for GL period %s.  Exiting.\n\n", gl_period.arr);
+     invoice_no.arr[invoice_no.len] = '\0';
+     inv_rev_no.arr[inv_rev_no.len] = '\0';
+     customer_id.arr[customer_id.len] = '\0';
+     csc_name.arr[csc_name.len] = '\0';
+     customer_type_code.arr[customer_type_code.len] = '\0';
+     if(invoice_list_tail->invoice_no.arr[0] == 'E')
+       fprintf(rptFile,"   INVOICE: %-40s   REVISION: %s\n", invoice_list_tail->invoice_no.arr, invoice_list_tail->inv_rev_no.arr);
+     else if(invoice_list_tail->invoice_no.arr[0] == 'R')
+       fprintf(rptFile,"REMITTANCE: %-40s   REVISION: %s\n", invoice_list_tail->invoice_no.arr, invoice_list_tail->inv_rev_no.arr);
+                   product.arr[product.len] = '\0';
+                   trans_type.arr[trans_type.len] = '\0';
+                   trade_type.arr[trade_type.len] = '\0';
+                   opt_type.arr[opt_type.len] = '\0';
+                   amount.arr[amount.len] = '\0';
+                   quantity.arr[quantity.len] = '\0';
+                        fprintf(rptFile, "5 GL account does not exist in TVAGLACCOUNT for %s %s %s\n", customer_type_code.arr, product.arr, csc_name.arr);
+                   fprintf(rptFile, "5a trans trade opt %s %s %s\n", trans_type.arr, trade_type.arr, opt_type.arr);
+                        entity.arr[entity.len] = '\0';
+                        resp_org.arr[resp_org.len] = '\0';
+                        perf_org.arr[perf_org.len] = '\0';
+                        location.arr[location.len] = '\0';
+                        nat_acct.arr[nat_acct.len] = '\0';
+                        ferc_acct.arr[ferc_acct.len] = '\0';
+                        intercomp.arr[intercomp.len] = '\0';
+                        rpt_class.arr[rpt_class.len] = '\0';
+                        future2.arr[future2.len] = '\0';
+                        acct_flag.arr[acct_flag.len] = '\0';
+                        gl_post_desc.arr[gl_post_desc.len] = '\0';
+                        credit_debit.arr[credit_debit.len] = '\0';
+                        post_jv_stats.arr[post_jv_stats.len] = '\0';
+                        jv_type.arr[jv_type.len] = '\0';
+                        billing_acct_flg.arr[billing_acct_flg.len] = '\0';
+                    /*printf("INVOICE   = %s\n",invoice_list_ptr->invoice_no.arr);
+                    printf("PRODUCT   = %s\n",product.arr);
+                    printf("FERC      = %s\n",ferc_acct.arr);
+                    printf("AMT       = %s\n\n",amount.arr);*/
+                   if((strcmp((char*)jv_type.arr, "21C ") == 0) || (strcmp((char*)jv_type.arr, "21C1") == 0))
+                      if(strcmp((char*)entity.arr, "00") != 0)
+                         if(strncmp((char*)invoice_list_ptr->invoice_no.arr,"R",1) == 0)
+                         else if(strncmp((char*)invoice_list_ptr->invoice_no.arr,"E",1) == 0)
+                             fprintf(rptFile, "6 GL account does not exist in TVAGLACCOUNT for %s %s %s\n", customer_type_code.arr, product.arr, csc_name.arr);
+                             entity.arr[entity.len] = '\0';
+                             resp_org.arr[resp_org.len] = '\0';
+                             perf_org.arr[perf_org.len] = '\0';
+                             location.arr[location.len] = '\0';
+                             nat_acct.arr[nat_acct.len] = '\0';
+                             ferc_acct.arr[ferc_acct.len] = '\0';
+                             intercomp.arr[intercomp.len] = '\0';
+                             rpt_class.arr[rpt_class.len] = '\0';
+                             future2.arr[future2.len] = '\0';
+                             acct_flag.arr[acct_flag.len] = '\0';
+                             gl_post_desc.arr[gl_post_desc.len] = '\0';
+                             credit_debit.arr[credit_debit.len] = '\0';
+                             post_jv_stats.arr[post_jv_stats.len] = '\0';
+                             jv_type.arr[jv_type.len] = '\0';
+                             billing_acct_flg.arr[billing_acct_flg.len] = '\0';
+       amount_C_1.arr[amount_C_1.len] = '\0';
+       product_C_1.arr[product_C_1.len] = '\0';
+       amount_C_2.arr[amount_C_2.len] = '\0';
+       product_C_2.arr[product_C_2.len] = '\0';
+       amount_C_3.arr[amount_C_3.len] = '\0';
+       product_C_3.arr[product_C_3.len] = '\0';
+                              trans_offset_amt += atof((char*)amount_C_1.arr);
+                              trans_offset_amt += atof((char*)amount_C_2.arr);
+                              trans_offset_amt += atof((char*)amount_C_3.arr);
+                  fprintf(rptFile, "7 GL account does not exist in TVAGLACCOUNT for %s %s %s\n", customer_type_code.arr, product.arr, csc_name.arr);
+                  fprintf(rptFile, "7a temp product %s\n", temp_product.arr);
+                  entity.arr[entity.len] = '\0';
+                  resp_org.arr[resp_org.len] = '\0';
+                  perf_org.arr[perf_org.len] = '\0';
+                  location.arr[location.len] = '\0';
+                  nat_acct.arr[nat_acct.len] = '\0';
+                  ferc_acct.arr[ferc_acct.len] = '\0';
+                  intercomp.arr[intercomp.len] = '\0';
+                  rpt_class.arr[rpt_class.len] = '\0';
+                  future2.arr[future2.len] = '\0';
+                  acct_flag.arr[acct_flag.len] = '\0';
+                  gl_post_desc.arr[gl_post_desc.len] = '\0';
+                  credit_debit.arr[credit_debit.len] = '\0';
+                  post_jv_stats.arr[post_jv_stats.len] = '\0';
+                  jv_type.arr[jv_type.len] = '\0';
+                  billing_acct_flg.arr[billing_acct_flg.len] = '\0';
+      if( (strcmp(product_list_ptr->product.arr,"ENERGY") == 0) && (strcmp(product_list_ptr->ferc_acct.arr,"447100") == 0) )
+                  fprintf(rptFile, "8 GL account does not exist in TVAGLACCOUNT for %s %s %s\n", customer_type_code.arr, product.arr, csc_name.arr);
+                  fprintf(rptFile, "8a temp product %s\n", temp_product.arr);
+                  entity.arr[entity.len] = '\0';
+                  resp_org.arr[resp_org.len] = '\0';
+                  perf_org.arr[perf_org.len] = '\0';
+                  location.arr[location.len] = '\0';
+                  nat_acct.arr[nat_acct.len] = '\0';
+                  ferc_acct.arr[ferc_acct.len] = '\0';
+                  intercomp.arr[intercomp.len] = '\0';
+                  rpt_class.arr[rpt_class.len] = '\0';
+                  future2.arr[future2.len] = '\0';
+                  acct_flag.arr[acct_flag.len] = '\0';
+                  gl_post_desc.arr[gl_post_desc.len] = '\0';
+                  credit_debit.arr[credit_debit.len] = '\0';
+                  post_jv_stats.arr[post_jv_stats.len] = '\0';
+                  jv_type.arr[jv_type.len] = '\0';
+                  billing_acct_flg.arr[billing_acct_flg.len] = '\0';
+                  fprintf(rptFile, "9 GL account does not exist in TVAGLACCOUNT for %s %s %s\n", customer_type_code.arr, product.arr, csc_name.arr);
+                  fprintf(rptFile, "9a temp product %s\n", temp_product.arr);
+                  entity.arr[entity.len] = '\0';
+                  resp_org.arr[resp_org.len] = '\0';
+                  perf_org.arr[perf_org.len] = '\0';
+                  location.arr[location.len] = '\0';
+                  nat_acct.arr[nat_acct.len] = '\0';
+                  ferc_acct.arr[ferc_acct.len] = '\0';
+                  intercomp.arr[intercomp.len] = '\0';
+                  rpt_class.arr[rpt_class.len] = '\0';
+                  future2.arr[future2.len] = '\0';
+                  acct_flag.arr[acct_flag.len] = '\0';
+                  gl_post_desc.arr[gl_post_desc.len] = '\0';
+                  credit_debit.arr[credit_debit.len] = '\0';
+                  post_jv_stats.arr[post_jv_stats.len] = '\0';
+                  jv_type.arr[jv_type.len] = '\0';
+                  billing_acct_flg.arr[billing_acct_flg.len] = '\0';
+       amount_C_1.arr[amount_C_1.len] = '\0';
+       product_C_1.arr[product_C_1.len] = '\0';
+       amount_C_2.arr[amount_C_2.len] = '\0';
+       product_C_2.arr[product_C_2.len] = '\0';
+       amount_C_3.arr[amount_C_3.len] = '\0';
+       product_C_3.arr[product_C_3.len] = '\0';
+                              emerg_trans_offset_amt += atof((char*)amount_C_1.arr);
+                              emerg_trans_offset_amt += atof((char*)amount_C_2.arr);
+                              emerg_trans_offset_amt += atof((char*)amount_C_3.arr);
+                  fprintf(rptFile, "10 GL account does not exist in TVAGLACCOUNT for %s %s %s\n", customer_type_code.arr, product.arr, csc_name.arr);
+                  fprintf(rptFile, "10a temp product %s\n", temp_product.arr);
+                  entity.arr[entity.len] = '\0';
+                  resp_org.arr[resp_org.len] = '\0';
+                  perf_org.arr[perf_org.len] = '\0';
+                  location.arr[location.len] = '\0';
+                  nat_acct.arr[nat_acct.len] = '\0';
+                  ferc_acct.arr[ferc_acct.len] = '\0';
+                  intercomp.arr[intercomp.len] = '\0';
+                  rpt_class.arr[rpt_class.len] = '\0';
+                  future2.arr[future2.len] = '\0';
+                  acct_flag.arr[acct_flag.len] = '\0';
+                  gl_post_desc.arr[gl_post_desc.len] = '\0';
+                  credit_debit.arr[credit_debit.len] = '\0';
+                  post_jv_stats.arr[post_jv_stats.len] = '\0';
+                  jv_type.arr[jv_type.len] = '\0';
+                  billing_acct_flg.arr[billing_acct_flg.len] = '\0';
+    printf("REMITTANCE   = %s\n",invoice_list_ptr->invoice_no.arr);
+         printf("PRODUCT   = %s\n",product_list_ptr->product.arr);
+         printf("AMOUNT    = %s\n",product_list_ptr->amount.arr);
+         printf("QUANTI    = %s\n",product_list_ptr->quantity.arr);
+         printf("FERC      = %s\n",product_list_ptr->ferc_acct.arr);
+         printf("POST      = %s\n",product_list_ptr->post_jv_stats.arr);
+    if(((strcmp((char*)product_list_ptr->product.arr,"ENERGY")   == 0) &&
+       (strcmp((char*)product_list_ptr->trans_type.arr,"SALE")  == 0) &&
+       (strcmp((char*)product_list_ptr->trade_type.arr,"NORMAL") == 0)) || 
+       ((strcmp((char*)product_list_ptr->product.arr,"E")   == 0) &&
+       (strcmp((char*)product_list_ptr->trans_type.arr,"SALE")  == 0) &&
+       (strcmp((char*)product_list_ptr->trade_type.arr,"NORMAL") == 0)) ||
+       ((strcmp((char*)product_list_ptr->product.arr,"ENERGY")   == 0) &&
+       (strcmp((char*)product_list_ptr->trans_type.arr,"SALE")  == 0) &&
+       (strcmp((char*)product_list_ptr->trade_type.arr,"TRADING") == 0)) ||
+       ((strcmp((char*)product_list_ptr->product.arr,"E")   == 0) &&
+       (strcmp((char*)product_list_ptr->trans_type.arr,"SALE")  == 0) &&
+       (strcmp((char*)product_list_ptr->trade_type.arr,"TRADING") == 0)))
+    if(((strcmp((char*)product_list_ptr->product.arr,"EMERGENCY_BACKUP_POWER")   == 0) &&
+       (strcmp((char*)product_list_ptr->trans_type.arr,"SALE")  == 0) &&
+       (strcmp((char*)product_list_ptr->trade_type.arr,"NORMAL") == 0)) ||
+       ((strcmp((char*)product_list_ptr->product.arr,"EMERGENCY_BACKUP_POWER_EST")   == 0) &&
+       (strcmp((char*)product_list_ptr->trans_type.arr,"SALE")  == 0) &&
+       (strcmp((char*)product_list_ptr->trade_type.arr,"NORMAL") == 0)) ||
+       ((strcmp((char*)product_list_ptr->product.arr,"EMERGENCY_BACKUP_POWER")   == 0) &&
+       (strcmp((char*)product_list_ptr->trans_type.arr,"SALE")  == 0) &&
+       (strcmp((char*)product_list_ptr->trade_type.arr,"TRADING") == 0)) ||
+       ((strcmp((char*)product_list_ptr->product.arr,"EMERGENCY_BACKUP_POWER_EST")   == 0) &&
+       (strcmp((char*)product_list_ptr->trans_type.arr,"SALE")  == 0) &&
+       (strcmp((char*)product_list_ptr->trade_type.arr,"TRADING") == 0)))
+             if((strcmp((char*)old_product_list_ptr->post_jv_stats.arr,"YES")  == 0) &&
+                (strcmp((char*)old_product_list_ptr->entity.arr,"00") != 0) &&
+                (strcmp((char*)old_product_list_ptr->quantity.arr,"N/A")       != 0))
+                       temp_quantity = atof((char*)new_product_record->quantity.arr);
+                       if((strcmp((char*)new_product_record->trans_type.arr,"PURCHASE") == 0) || (strcmp(customer_type, "COGEN") == 0))
+                            if((strcmp((char*) old_product_list_ptr->ferc_product.arr, (char*)stat_product_list_ptr->ferc_product.arr)) == 0)
+                                  temp_quantity = atof((char*)old_product_list_ptr->quantity.arr);
+                                  if((strcmp((char*)stat_product_list_ptr->trans_type.arr,"PURCHASE") == 0) || (strcmp(customer_type, "COGEN") == 0))
+                          temp_quantity = atof((char*)new_product_record->quantity.arr);
+                          if((strcmp((char*)new_product_record->trans_type.arr,"PURCHASE") == 0) || (strcmp(customer_type, "COGEN") == 0))
+              if(strncmp((char*)old_product_list_ptr->product.arr, "BILLED_ACCOUNTS_PAYABLE_POWER", 19) == 0 )
+              pos_or_neg = old_product_list_ptr->amount.arr[0];
+              sscanf((char*)old_product_list_ptr->amount.arr, "%lf", &temp_amount);
+                          if((strcmp((char*) old_product_list_ptr->product.arr, (char*)amt_product_list_ptr->product.arr)) == 0)
+            if(strcmp((char*)old_product_list_ptr->entity.arr,"00") != 0)
+                sign = old_product_list_ptr->amount.arr[0];
+                temp_amount = atof((char*)old_product_list_ptr->amount.arr);
+                temp_net_amount = atof((char*)old_product_list_ptr->amount.arr);
+                if((strcmp((char*)new_product_record->product.arr, "BILLED_ACCOUNTS_RECEIVABLE_POWER")   == 0) ||
+                   (strcmp((char*)new_product_record->product.arr, "UNBILLED_ACCOUNTS_RECEIVABLE_POWER") == 0))
+                      if(strcmp(old_product_list_ptr->trans_type.arr, "PURCHASE") == 0)
+                      if(strcmp(old_product_list_ptr->trans_type.arr, "PURCHASE") == 0)
+                else if((strcmp((char*)new_product_record->product.arr, "BILLED_ACCOUNTS_PAYABLE_POWER")      == 0) ||
+                        (strcmp((char*)new_product_record->product.arr, "UNBILLED_ACCOUNTS_PAYABLE_POWER")    == 0))
+                      if(strcmp(old_product_list_ptr->trans_type.arr,"SALE") == 0)
+                      if(strcmp(old_product_list_ptr->trans_type.arr,"SALE") == 0)
+                   if(strcmp((char*)new_product_record->credit_debit.arr, "DEBIT") == 0)
+                    else if(strcmp((char*)new_product_record->credit_debit.arr, "CREDIT") == 0)
+                    else if(strcmp((char*)new_product_record->credit_debit.arr, "EITHER") == 0)
+                       if(strcmp((char*)new_product_record->trans_type.arr, "PURCHASE") == 0)
+                       else if(strcmp((char*)new_product_record->trans_type.arr, "SALE") == 0)
+                 if((strcmp((char*) old_product_list_ptr->ferc_product.arr, (char*)product_list_ptr->ferc_product.arr)) == 0)
+                    if((strcmp((char*)old_product_list_ptr->product.arr, "BILLED_ACCOUNTS_RECEIVABLE_POWER")   == 0) ||
+                       (strcmp((char*)old_product_list_ptr->product.arr, "UNBILLED_ACCOUNTS_RECEIVABLE_POWER") == 0))
+                          if(strcmp(old_product_list_ptr->trans_type.arr,"PURCHASE") == 0)
+                          if(strcmp(old_product_list_ptr->trans_type.arr,"PURCHASE") == 0)
+                    else if((strcmp((char*)old_product_list_ptr->product.arr, "BILLED_ACCOUNTS_PAYABLE_POWER")      == 0) ||
+                            (strcmp((char*)old_product_list_ptr->product.arr, "UNBILLED_ACCOUNTS_PAYABLE_POWER")    == 0))
+                          if(strcmp(old_product_list_ptr->trans_type.arr,"SALE") == 0)
+                          if(strcmp(old_product_list_ptr->trans_type.arr,"SALE") == 0)
+                       if(strcmp((char*)old_product_list_ptr->credit_debit.arr, "DEBIT") == 0)
+                       else if(strcmp((char*)old_product_list_ptr->credit_debit.arr, "CREDIT") == 0)
+                       else if(strcmp((char*)old_product_list_ptr->credit_debit.arr, "EITHER") == 0)
+                          if(strcmp((char*)old_product_list_ptr->trans_type.arr, "PURCHASE") == 0)
+                          else if(strcmp((char*)old_product_list_ptr->trans_type.arr, "SALE") == 0)
+              if((product_exist == FALSE) && (strcmp((char*)old_product_list_ptr->ferc_product.arr,"") != 0))
+                 if((strcmp((char*)old_product_list_ptr->product.arr, "BILLED_ACCOUNTS_RECEIVABLE_POWER")   == 0) ||
+                    (strcmp((char*)old_product_list_ptr->product.arr, "UNBILLED_ACCOUNTS_RECEIVABLE_POWER") == 0))
+                       if(strcmp(old_product_list_ptr->trans_type.arr,"PURCHASE") == 0)
+                       if(strcmp(old_product_list_ptr->trans_type.arr,"PURCHASE") == 0)
+                 else if((strcmp((char*)old_product_list_ptr->product.arr, "BILLED_ACCOUNTS_PAYABLE_POWER")      == 0) ||
+                         (strcmp((char*)old_product_list_ptr->product.arr, "UNBILLED_ACCOUNTS_PAYABLE_POWER")    == 0))
+                       if(strcmp(old_product_list_ptr->trans_type.arr,"SALE") == 0)
+                       if(strcmp(old_product_list_ptr->trans_type.arr,"SALE") == 0)
+                   if(strcmp((char*)new_product_record->credit_debit.arr, "DEBIT") == 0)
+                    else if(strcmp((char*)new_product_record->credit_debit.arr, "CREDIT") == 0)
+                    else if(strcmp((char*)new_product_record->credit_debit.arr, "EITHER") == 0)
+                       if(strcmp((char*)new_product_record->trans_type.arr, "PURCHASE") == 0)
+                       else if(strcmp((char*)new_product_record->trans_type.arr, "SALE") == 0)
+      printf("PRODUCT=%s\n",product_list_ptr->product.arr);
+      printf("AMOUNT =%s\n",product_list_ptr->amount.arr);
+      printf("QUANTI =%s\n",product_list_ptr->quantity.arr);
+          strncpy(temp_prod.arr,product_list_ptr->product.arr,45);
+          temp_prod.arr[sizeof(temp_prod.arr)-1] = '\0';
+            product_list_ptr->nat_acct.arr, product_list_ptr->location.arr, product_list_ptr->ferc_acct.arr,
+            temp_prod.arr, debit, credit);
+  head_tot_recs.arr[head_tot_recs.len] = '\0';
+  head_cre_date.arr[head_cre_date.len] = '\0';
+  strcat(header_record.arr, head_tot_recs.arr);
+  strcat(header_record.arr, amt_header_record.total_debit.arr);
+  strcat(header_record.arr, amt_header_record.total_credit.arr);
+  strcat(header_record.arr, head_cre_date.arr);
+  header_record.arr[header_record.len] = '\0';
+  fprintf(glDollarsFeederFile,"%s\n", header_record.arr);
+        det_entity.arr[det_entity.len] = '\0';
+        det_resp_org.arr[det_resp_org.len] = '\0';
+        strcat(detail_record.arr,det_resp_org.arr);
+        det_perf_org.arr[det_perf_org.len] = '\0';
+        strcat(detail_record.arr,det_perf_org.arr);
+        det_location.arr[det_location.len] = '\0';
+        strcat(detail_record.arr,det_location.arr);
+        det_nat_acct.arr[det_nat_acct.len] = '\0';
+        strcat(detail_record.arr,det_nat_acct.arr);
+        det_ferc_acct.arr[det_ferc_acct.len] = '\0';
+        strcat(detail_record.arr,det_ferc_acct.arr);
+        det_intercomp.arr[det_intercomp.len] = '\0';
+        strcat(detail_record.arr,det_intercomp.arr);
+        det_rpt_class.arr[det_rpt_class.len] = '\0';
+        strcat(detail_record.arr,det_rpt_class.arr);
+        det_future2.arr[det_future2.len] = '\0';
+        strcat(detail_record.arr,det_future2.arr);
+        strcat(detail_record.arr, amt_header_record.trans_code.arr);
+        det_trans_dt.arr[det_trans_dt.len] = '\0';
+        strcat(detail_record.arr, det_trans_dt.arr);
+        det_acct_period.arr[det_acct_period.len] = '\0';
+        strcat(detail_record.arr, det_acct_period.arr);
+        strcat(detail_record.arr, product_list_ptr->detail_line.debit.arr);
+        strcat(detail_record.arr, "+0000000000000.00");
+        strncpy(det_desc.arr,product_list_ptr->gl_post_desc.arr,26);
+        det_desc.arr[26] = '\0';
+        det_desc.arr[det_desc.len] = '\0';
+        strcat(detail_record.arr, det_desc.arr);
+        strcat(detail_record.arr,"                              ");
+        strcat(detail_record.arr,"                              ");
+        strcat(detail_record.arr,"                              ");
+        strcat(detail_record.arr,"                              ");
+        strcat(detail_record.arr,"                              ");
+        detail_record.arr[detail_record.len] = '\0';
+        fprintf(glDollarsFeederFile,"%s\n", detail_record.arr);
+        strcat(detail_record.arr,det_resp_org.arr);
+        strcat(detail_record.arr,det_perf_org.arr);
+        strcat(detail_record.arr,det_location.arr);
+        strcat(detail_record.arr,det_nat_acct.arr);
+        strcat(detail_record.arr,det_ferc_acct.arr);
+        strcat(detail_record.arr,det_intercomp.arr);
+        strcat(detail_record.arr,det_rpt_class.arr);
+        strcat(detail_record.arr,det_future2.arr);
+        strcat(detail_record.arr,amt_header_record.trans_code.arr);
+        strcat(detail_record.arr,det_trans_dt.arr);
+        strcat(detail_record.arr,det_acct_period.arr);
+        strcat(detail_record.arr,"+0000000000000.00");
+        strcat(detail_record.arr,product_list_ptr->detail_line.credit.arr);
+        strcat(detail_record.arr,det_desc.arr);
+        strcat(detail_record.arr,"                              ");
+        strcat(detail_record.arr,"                              ");
+        strcat(detail_record.arr,"                              ");
+        strcat(detail_record.arr,"                              ");
+        strcat(detail_record.arr,"                              ");
+        detail_record.arr[detail_record.len] = '\0';
+        fprintf(glDollarsFeederFile,"%s\n", detail_record.arr);
+           det_entity.arr[det_entity.len] = '\0';
+           det_resp_org.arr[det_resp_org.len] = '\0';
+           strcat(detail_record.arr,det_resp_org.arr);
+           det_perf_org.arr[det_perf_org.len] = '\0';
+           strcat(detail_record.arr,det_perf_org.arr);
+           det_location.arr[det_location.len] = '\0';
+           strcat(detail_record.arr,det_location.arr);
+           det_nat_acct.arr[det_nat_acct.len] = '\0';
+           strcat(detail_record.arr,det_nat_acct.arr);
+           det_ferc_acct.arr[det_ferc_acct.len] = '\0';
+           strcat(detail_record.arr,det_ferc_acct.arr);
+           det_intercomp.arr[det_intercomp.len] = '\0';
+           strcat(detail_record.arr,det_intercomp.arr);
+           det_rpt_class.arr[det_rpt_class.len] = '\0';
+           strcat(detail_record.arr,det_rpt_class.arr);
+           det_future2.arr[det_future2.len] = '\0';
+           strcat(detail_record.arr,det_future2.arr);
+           strcat(detail_record.arr, amt_header_record.trans_code.arr);
+           det_trans_dt.arr[det_trans_dt.len] = '\0';
+           strcat(detail_record.arr, det_trans_dt.arr);
+           det_acct_period.arr[det_acct_period.len] = '\0';
+           strcat(detail_record.arr, det_acct_period.arr);
+           strcat(detail_record.arr, product_list_ptr->detail_line.debit.arr);
+           strcat(detail_record.arr, product_list_ptr->detail_line.credit.arr);
+           strncpy(det_desc.arr,product_list_ptr->gl_post_desc.arr,26);
+           det_desc.arr[26] = '\0';
+           det_desc.arr[det_desc.len] = '\0';
+           strcat(detail_record.arr, det_desc.arr);
+           strcat(detail_record.arr,"                              ");
+           strcat(detail_record.arr,"                              ");
+           strcat(detail_record.arr,"                              ");
+           strcat(detail_record.arr,"                              ");
+           strcat(detail_record.arr,"                              ");
+           detail_record.arr[detail_record.len] = '\0';
+           fprintf(glDollarsFeederFile,"%s\n", detail_record.arr);
+  strcpy((char*)bill_type_del.arr,bill_type);
+  strcpy((char*)bill_type_i.arr,bill_type);
+    if((strcmp(product_list_ptr->detail_line.debit.arr,"") != 0) &&
+       (strcmp(product_list_ptr->detail_line.acct_period.arr,"") != 0))
+/*printf("X1 :%d:%s\n", product_list_ptr->detail_line.acct_period.len, product_list_ptr->detail_line.acct_period.arr);
+printf("X2 :%d:%s\n", parameter_code.len, parameter_code.arr);
+printf("X3 :%d:%s\n", product_list_ptr->detail_line.trans_code.len, product_list_ptr->detail_line.trans_code.arr);
+printf("X4 :%d:%s\n", product_list_ptr->detail_line.trans_date.len, product_list_ptr->detail_line.trans_date.arr);
+printf("X5 :%d:%s\n", product_list_ptr->detail_line.debit.len, product_list_ptr->detail_line.debit.arr);
+printf("X6 :%d:%s\n", product_list_ptr->detail_line.credit.len, product_list_ptr->detail_line.credit.arr);
+printf("X7 :%d:%s\n", product_list_ptr->product.len, product_list_ptr->product.arr);
+printf("X8 :%d:%s\n", product_list_ptr->gl_post_desc.len, product_list_ptr->gl_post_desc.arr);
+printf("X9 :%d:%s\n", product_list_ptr->trans_type.len,product_list_ptr->trans_type.arr);
+printf("X10:%d:%s\n", product_list_ptr->trade_type.len, product_list_ptr->trade_type.arr);
+printf("X11:%d:%s\n", product_list_ptr->opt_type.len, product_list_ptr->opt_type.arr);
+printf("X12:%d:%s\n", product_list_ptr->entity.len, product_list_ptr->entity.arr);
+printf("X13:%d:%s\n", product_list_ptr->resp_org.len, product_list_ptr->resp_org.arr);
+printf("X14:%d:%s\n", product_list_ptr->perf_org.len, product_list_ptr->perf_org.arr);
+printf("X15:%d:%s\n", product_list_ptr->location.len, product_list_ptr->location.arr);
+printf("X16:%d:%s\n", product_list_ptr->nat_acct.len, product_list_ptr->nat_acct.arr);
+printf("X17:%d:%s\n", product_list_ptr->ferc_acct.len, product_list_ptr->ferc_acct.arr);
+printf("X18:%d:%s\n", product_list_ptr->intercomp.len, product_list_ptr->intercomp.arr);
+printf("X19:%d:%s\n", product_list_ptr->rpt_class.len, product_list_ptr->rpt_class.arr);
+printf("X20:%d:%s\n", product_list_ptr->future2.len, product_list_ptr->future2.arr);
+       (strcmp(product_list_ptr->detail_line.acct_period.arr,"") != 0))
+  strcpy((char*)bill_type_qry.arr, bill_type);
+  fprintf(rptFile,"%-40s   REVISION: %s\n", invoice_list_tail->invoice_no.arr, invoice_list_tail->inv_rev_no.arr);
+        fprintf(rptFile,"\n\nERROR - NO DATA IN INTRF_JV_LINES TABLE FOR BILL TYPE %s, %s ACCOUNTING PERIOD, %s PARAMETER CODE, 15B TRANS CODE.\n\n",bill_type_qry.arr, gl_period.arr, trns_type.arr);
+           entity.arr[entity.len] = '\0';
+           resp_org.arr[resp_org.len] = '\0';
+           perf_org.arr[perf_org.len] = '\0';
+           location.arr[location.len] = '\0';
+           nat_acct.arr[nat_acct.len] = '\0';
+           ferc_acct.arr[ferc_acct.len] = '\0';
+           intercomp.arr[intercomp.len] = '\0';
+           rpt_class.arr[rpt_class.len] = '\0';
+           future2.arr[future2.len] = '\0';
+           acct_period.arr[acct_period.len] = '\0';
+           trans_code.arr[trans_code.len] = '\0';
+           trans_date.arr[trans_date.len] = '\0';
+           debit.arr[debit.len] = '\0';
+           credit.arr[credit.len] = '\0';
+           description.arr[description.len] = '\0';
+           product.arr[product.len] = '\0';
+           quantity.arr[quantity.len] = '\0';
+           trans_type.arr[trans_type.len] = '\0';
+           trade_type.arr[trade_type.len] = '\0';
+           opt_type.arr[opt_type.len] = '\0';
+           strcpy((char*)invoice_list_ptr->product_list_tail->detail_line.trans_code.arr , (char*)trans_code.arr);
+           strcpy((char*)invoice_list_ptr->product_list_tail->detail_line.trans_date.arr , (char*)trans_date.arr);
+           strcpy((char*)invoice_list_ptr->product_list_tail->detail_line.credit.arr      , (char*)credit.arr);
+           invoice_list_ptr->product_list_tail->dbl_quantity = (atof(debit.arr) * -1);
+           v_sprintf(invoice_list_ptr->product_list_tail->quantity, "%lf", (atof(debit.arr) * -1));
+           invoice_list_ptr->product_list_tail->detail_line.dbl_debit = (atof(debit.arr) * -1);
+           v_sprintf(invoice_list_ptr->product_list_tail->detail_line.debit, "%+017.2lf", (atof(debit.arr) * -1));
+           invoice_list_ptr->product_list_tail->detail_line.dbl_credit = atof((char*)invoice_list_ptr->product_list_tail->detail_line.credit.arr);
+        fprintf(rptFile,"\n\nERROR - NO DATA IN INTRF_JV_LINES TABLE FOR BILL TYPE %s, %s ACCOUNTING PERIOD, %s TRANSACTION TYPE, 15A TRANS CODE - EXITING.\n\n",bill_type_qry.arr,gl_period.arr, trns_type.arr);
+           entity.arr[entity.len] = '\0';
+           resp_org.arr[resp_org.len] = '\0';
+           perf_org.arr[perf_org.len] = '\0';
+           location.arr[location.len] = '\0';
+           nat_acct.arr[nat_acct.len] = '\0';
+           ferc_acct.arr[ferc_acct.len] = '\0';
+           intercomp.arr[intercomp.len] = '\0';
+           rpt_class.arr[rpt_class.len] = '\0';
+           future2.arr[future2.len] = '\0';
+           acct_period.arr[acct_period.len] = '\0';
+           trans_code.arr[trans_code.len] = '\0';
+           trans_date.arr[trans_date.len] = '\0';
+           debit.arr[debit.len] = '\0';
+           credit.arr[credit.len] = '\0';
+           description.arr[description.len] = '\0';
+           product.arr[product.len] = '\0';
+           quantity.arr[quantity.len] = '\0';
+           trans_type.arr[trans_type.len] = '\0';
+           trade_type.arr[trade_type.len] = '\0';
+           opt_type.arr[opt_type.len] = '\0';
+           strcpy((char*)invoice_list_ptr->product_list_tail->detail_line.trans_code.arr , (char*)trans_code.arr);
+           strcpy((char*)invoice_list_ptr->product_list_tail->detail_line.trans_date.arr , (char*)trans_date.arr);
+           strcpy((char*)invoice_list_ptr->product_list_tail->detail_line.debit.arr      , (char*)credit.arr);
+           strcpy((char*)invoice_list_ptr->product_list_tail->detail_line.credit.arr     , (char*)debit.arr);
+           invoice_list_ptr->product_list_tail->detail_line.dbl_debit = atof((char*)invoice_list_ptr->product_list_tail->detail_line.debit.arr);
+           invoice_list_ptr->product_list_tail->detail_line.dbl_credit = atof((char*)invoice_list_ptr->product_list_tail->detail_line.credit.arr);
+     product_list_ptr->dbl_quantity = atof((char*)product_list_ptr->quantity.arr);
+  if ( strcmp(stat_header_record.trans_code.arr,"15F") == 0) {
+      fprintf(rptFile, "%s       %s     %17s  %s\n", stat_header_record.trans_code.arr, head_tot_recs.arr,
+          det_kwh_fmt.arr, head_cre_date.arr);
+  fprintf(glStatsFeederFile,"%s\n", header_record.arr);
+        det_entity.arr[det_entity.len] = '\0';
+        det_resp_org.arr[det_resp_org.len] = '\0';
+        det_perf_org.arr[det_perf_org.len] = '\0';
+        det_location.arr[det_location.len] = '\0';
+        det_nat_acct.arr[det_nat_acct.len] = '\0';
+        det_ferc_acct.arr[det_ferc_acct.len] = '\0';
+        det_intercomp.arr[det_intercomp.len] = '\0';
+        det_rpt_class.arr[det_rpt_class.len] = '\0';
+        det_future2.arr[det_future2.len] = '\0';
+        det_trans_dt.arr[det_trans_dt.len] = '\0';
+        det_acct_period.arr[det_acct_period.len] = '\0';
+        strncpy(det_desc.arr,product_list_ptr->gl_post_desc.arr,26);
+        det_desc.arr[26] = '\0';
+        det_desc.arr[det_desc.len] = '\0';
+        det_debit.arr[det_debit.len] = '\0';
+        det_credit.arr[det_credit.len] = '\0';
+        det_kwh.arr[det_kwh.len] = '\0';
+        det_trans_cd.arr[det_trans_cd.len] = '\0';
+        fprintf(glStatsFeederFile,"%s\n", detail_record.arr);
+        if (strcmp(stat_header_record.trans_code.arr,"15F") == 0) {
+                det_entity.arr, det_resp_org.arr, det_perf_org.arr, det_location.arr, det_nat_acct.arr, det_ferc_acct.arr, det_intercomp.arr, 
+                det_rpt_class.arr, det_future2.arr, stat_header_record.trans_code.arr, det_acct_period.arr, det_trans_dt.arr,
+                det_kwh_fmt.arr, det_desc.arr);
+  strcpy((char*)interface_type.arr, INTERFACE_TYPE);
+     strcat(run_name.arr, trans_code);
+     strcpy(run_name.arr, trans_code);
+  strcat((char*)run_name.arr, (char*)"_"); 
+  strcat((char*)run_name.arr, (char*)gl_period.arr); 
+  submit_ts.arr[submit_ts.len] = '\0';
+ strcpy((char*)parameter_two.arr, run_type);
+ strcpy((char*)parameter_three.arr, trans_code);
+  strcpy((char*)interface_type.arr, INTERFACE_TYPE);
+   strcat(rptFileName,(char*)gl_period.arr); 
+      strcat(glDollarsFeederFileName,(char*)gl_period.arr);
+    strcpy((char*)number.arr, input_val);
+    formatted_num.arr[formatted_num.len] = '\0';
+    strcpy(ret_value, (char*)formatted_num.arr);
+    strcpy((char*)number.arr, input_val);
+    formatted_num.arr[formatted_num.len] = '\0';
+    strcpy(ret_value, (char*)formatted_num.arr);
+    strcpy((char*)gl_per.arr, gl_period);
+    converted_period.arr[converted_period.len] = '\0';
+    strcpy(gl_period, (char*)converted_period.arr);
