@@ -12,6 +12,17 @@
  */
 extern FILE *logFile;
 
+#define VARCHAR_v_valid(v)                                        \
+    ({                                                            \
+        size_t capacity = V_SIZE(v);                              \
+        if ((v).len > capacity) {                                 \
+            fprintf(logFile,                                      \
+                    "Line %d : v_valid(%s) overflow : .len %u > %lu c-string capacity\n\n", \
+                    __LINE__, #v, (v).len, capacity);             \
+        }                                                         \
+        v_valid(v);                                               \
+    })
+
 #define VARCHAR_zv_valid(v)                                       \
     ({                                                            \
         size_t capacity = ZV_CAPACITY(v);                         \
@@ -26,7 +37,7 @@ extern FILE *logFile;
                     __LINE__, #v);                                \
             }                                                     \
         }                                                         \
-        zv_valid(v); \
+        zv_valid(v);                                              \
     })
 
 /*
