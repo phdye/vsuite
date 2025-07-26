@@ -3,6 +3,36 @@ import os
 import types
 import io
 import contextlib
+try:
+    # Python 3.4+ provides redirect helpers in contextlib.  For
+    # compatibility with Python 3.2 we provide local fallbacks when these
+    # helpers are absent.
+    contextlib.redirect_stdout
+    contextlib.redirect_stderr
+except AttributeError:  # pragma: no cover - executed on older Pythons
+    import sys
+    from contextlib import contextmanager
+
+    @contextmanager
+    def redirect_stdout(target):
+        old = sys.stdout
+        sys.stdout = target
+        try:
+            yield
+        finally:
+            sys.stdout = old
+
+    @contextmanager
+    def redirect_stderr(target):
+        old = sys.stderr
+        sys.stderr = target
+        try:
+            yield
+        finally:
+            sys.stderr = old
+
+    contextlib.redirect_stdout = redirect_stdout
+    contextlib.redirect_stderr = redirect_stderr
 
 module_path = os.path.join(os.path.dirname(__file__), "..", "better-varchar.py")
 better_varchar = types.ModuleType("better_varchar")
