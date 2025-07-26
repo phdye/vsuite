@@ -52,7 +52,6 @@
         if (!f_valid(csrc)) {                                        \
             V_WARN("Line %d : zvf_copy(%s, %s) : src buffer is overflowed : bytes used %zu > %zu capacity", \
                 __LINE__, #vdst, #csrc, strlen(csrc), F_SIZE(csrc)); \
-                __LINE__, #vdst, #csrc, strlen(csrc), F_SIZE(csrc)); \
         }                                                            \
         varchar_overflow = 0;                                        \
         size_t __cap = ZV_CAPACITY(vdst);                            \
@@ -77,14 +76,14 @@
  * terminating NUL is appended.  If the buffer is too small the destination is
  * cleared to an empty string so the caller can detect the failure.
  */
-#define fv_copy(cdst, vsrc)                                                   \
-    do {                                                                      \
-        if ((vsrc).len < sizeof(cdst)) {                                      \
-            memcpy(cdst, V_BUF(vsrc), (vsrc).len);                            \
-            cdst[(vsrc).len] = '\0';                                          \
-        } else if (sizeof(cdst) > 0) {                                        \
-            cdst[0] = '\0';                                                   \
-        }                                                                     \
+#define fv_copy(cdst, vsrc)                                          \
+    do {                                                             \
+        if ((vsrc).len < sizeof(cdst)) {                             \
+            memcpy(cdst, V_BUF(vsrc), (vsrc).len);                   \
+            cdst[(vsrc).len] = '\0';                                 \
+        } else if (sizeof(cdst) > 0) {                               \
+            cdst[0] = '\0';                                          \
+        }                                                            \
     } while (0)
 
 #endif /* VSUITE_FIXED_H */
