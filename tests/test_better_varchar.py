@@ -15,7 +15,7 @@ class TestBetterVarchar(unittest.TestCase):
     def test_setlenz(self):
         # Simple termination assignment should convert to macro
         src = "FOO.arr[FOO.len] = '\0';"
-        self.assertIn('VARCHAR_SETLENZ(FOO);', better_varchar.transform(src))
+        self.assertIn('zv_setlenz(FOO);', better_varchar.transform(src))
 
     def test_v_copy(self):
         # strcpy + terminator should collapse to v_copy
@@ -35,7 +35,7 @@ class TestBetterVarchar(unittest.TestCase):
             "foo.arr[foo.len] = '\0';"
         )
         out = better_varchar.transform(src, only=['setlenz'])
-        self.assertIn('VARCHAR_SETLENZ(foo);', out)
+        self.assertIn('zv_setlenz(foo);', out)
         self.assertNotIn('v_copy(foo, bar);', out)
 
     def test_parse_only(self):

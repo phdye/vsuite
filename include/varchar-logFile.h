@@ -12,6 +12,19 @@
  */
 extern FILE *logFile;
 
+/*
+ * VARCHAR_v_valid() - Log when a VARCHAR length exceeds its capacity.
+ */
+#define VARCHAR_v_valid(v)                                        \
+    do {                                                         \
+        size_t cap = V_SIZE(v);                                  \
+        if ((v).len > cap) {                                     \
+            fprintf(logFile,                                     \
+                    "Line %d : v_valid(%s) overflow : .len %u > %zu capacity\n\n",\
+                    __LINE__, #v, (v).len, cap);                 \
+        }                                                        \
+    } while (0)
+
 #define VARCHAR_zv_valid(v)                                       \
     ({                                                            \
         size_t capacity = ZV_CAPACITY(v);                         \
@@ -110,7 +123,7 @@ extern FILE *logFile;
                     "Line %d : v_copy(%s, %s) overflow : destination capacity %u < %u source length\n\n", \
                     __LINE__, #dst, #src, siz, (src).len);        \
         }                                                         \
-        v_copy((dst), (src));                                     \
+        /* logging only: do not copy */                           \
     } while (0)
 
 /*

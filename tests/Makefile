@@ -1,4 +1,4 @@
-PROGRAMS = test-varchar test-zvarchar test-fixed test-pstr test-logfile
+PROGRAMS = test-varchar test-zvarchar test-fixed test-pstr test-logfile test-string
 
 INC=../include
 
@@ -18,6 +18,7 @@ test-zvarchar:   test-zvarchar.c   ${IV}/varchar.h  ${IV}/zvarchar.h
 test-fixed:      test-fixed.c      ${IV}/varchar.h  ${IV}/fixed.h
 test-pstr:       test-pstr.c       ${IV}/varchar.h  ${IV}/pstr.h
 test-logfile:    test-logfile.c    ${INC}/varchar-logFile.h ${IV}/zvarchar.h ${IV}/varchar.h
+test-string:     test-string.c     ${IV}/string.h
 
 PYTEST = python3 -m unittest -v test_better_varchar.py
 
